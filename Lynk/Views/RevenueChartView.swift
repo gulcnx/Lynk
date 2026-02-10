@@ -19,9 +19,9 @@ struct RevenueChartView: View {
                 .padding(.leading)
             
             Chart {
-                ForEach(clients.sorted(by: { $0.totalRevenue > $1.totalRevenue }).prefix(5)) { client in
+                ForEach(clients.sorted(by: { $0.totalLifetimeValue > $1.totalLifetimeValue }).prefix(5)) { client in
                     SectorMark(
-                        angle: .value("Revenue", client.totalRevenue),
+                        angle: .value("Revenue", client.totalLifetimeValue),
                         innerRadius: .ratio(0.6),
                         angularInset: 2
                     )

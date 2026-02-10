@@ -10,15 +10,18 @@ import SwiftData
 
 @main
 struct LynkApp: App {
-    // It remembers if they have finished onboarding, even if they close the app.
     @AppStorage("hasSeenOnboarding") var hasSeenOnboarding: Bool = false
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
     
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Client.self,
-            Project.self,
+            Vehicle.self,
+            Service.self,
+            Expense.self,
+            DamagePoint.self
         ])
+
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {

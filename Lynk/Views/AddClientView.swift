@@ -25,7 +25,13 @@ struct AddClientView: View {
                         .textInputAutocapitalization(.never)
                     
                     TextField("Phone", text: $viewModel.phone)
-                        .keyboardType(.phonePad)
+                    .keyboardType(.phonePad)
+                    .onChange(of: viewModel.phone) { oldValue, newValue in
+                        let filtered = newValue.filter { "0123456789+".contains($0) }
+                        if filtered != newValue {
+                            viewModel.phone = filtered
+                        }
+                    }
                 }
             }
             .navigationTitle("New Client")

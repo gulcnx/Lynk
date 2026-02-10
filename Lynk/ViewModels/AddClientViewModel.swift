@@ -22,5 +22,12 @@ class AddClientViewModel {
     func saveClient(context: ModelContext) {
         let newClient = Client(name: name, email: email, phoneNumber: phone)
         context.insert(newClient)
+        
+        do {
+                try context.save()
+                print("✅ Client Saved Successfully!")
+            } catch {
+                print("❌ Failed to save client: \(error)")
+            }
     }
 }

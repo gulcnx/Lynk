@@ -10,33 +10,44 @@ import SwiftData
 
 struct DashboardView: View {
     @Query private var clients: [Client]
-    @Query(sort: \Project.dueDate, order: .forward) private var recentProjects: [Project]
+    @Query(sort: \Service.date, order: .forward) private var recentServices: [Service] // CHANGED
+    @Query private var expenses: [Expense]
     
     @AppStorage("monthlyGoal") private var monthlyGoal: Double = 5000.0
+    @AppStorage("userName") private var userName: String = "User"
     
     @Environment(\.colorScheme) var colorScheme
     
     // --- COMPUTED PROPERTIES ---
     
     var activeJobsCount: Int {
-        clients.flatMap { $0.projects ?? [] }.filter { !$0.isPaid }.count
+        recentServices.filter { !$0.isPaid }.count
     }
     
     var pendingRevenue: Double {
-        clients.flatMap { $0.projects ?? [] }
-            .filter { !$0.isPaid }
-            .reduce(0) { $0 + $1.totalFee }
+        recentServices.filter { !$0.isPaid }.reduce(0) { $0 + $1.price }
     }
     
-    // Calculates income ONLY for the current month
+    var totalRevenue: Double {
+        recentServices.filter { $0.isPaid }.reduce(0) { $0 + $1.price }
+    }
+    
+    var totalExpenses: Double {
+        expenses.reduce(0) { $0 + $1.amount }
+    }
+    
+    var netProfit: Double {
+        totalRevenue - totalExpenses
+    }
+    
     var currentMonthRevenue: Double {
         let now = Date()
         let calendar = Calendar.current
-        let currentMonthProjects = clients.flatMap { $0.projects ?? [] }.filter { project in
-            guard project.isPaid else { return false }
-            return calendar.isDate(project.dueDate, equalTo: now, toGranularity: .month)
+        let currentMonthServices = recentServices.filter { service in
+            guard service.isPaid else { return false }
+            return calendar.isDate(service.date, equalTo: now, toGranularity: .month)
         }
-        return currentMonthProjects.reduce(0) { $0 + $1.totalFee }
+        return currentMonthServices.reduce(0) { $0 + $1.price }
     }
     
     var body: some View {
@@ -44,7 +55,7 @@ struct DashboardView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     
-                    // --- 1. HEADER ---
+                    // --- HEADER ---
                     HStack {
                         VStack(alignment: .leading, spacing: 5) {
                             Text(Date(), format: .dateTime.weekday().month().day())
@@ -52,66 +63,35 @@ struct DashboardView: View {
                                 .foregroundStyle(.gray)
                                 .textCase(.uppercase)
                             
-                            Text("Overview")
+                            Text("Hello, \(userName)")
                                 .font(.system(.largeTitle, design: .rounded))
                                 .bold()
                                 .foregroundStyle(colorScheme == .dark ? .white : .black)
                         }
                         Spacer()
+                        
+                        VStack(alignment: .trailing) {
+                            Text("Net Profit")
+                                .font(.caption)
+                                .foregroundStyle(.gray)
+                            Text(netProfit, format: .currency(code: "USD"))
+                                .font(.headline)
+                                .foregroundStyle(netProfit >= 0 ? .green : .red)
+                        }
                     }
                     .padding(.horizontal)
                     .padding(.top, 10)
                     
-                    // --- 2. MONTHLY GOAL CARD (NEW) ---
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack {
-                            Text("Monthly Goal")
-                                .font(.subheadline)
-                                .foregroundStyle(.gray)
-                            Spacer()
-                            // Avoid division by zero
-                            let percent = monthlyGoal > 0 ? Int((currentMonthRevenue / monthlyGoal) * 100) : 0
-                            Text("\(percent)%")
-                                .bold()
-                                .foregroundStyle(Color.lynkYellow)
-                        }
-                        
-                        // Progress Bar
-                        GeometryReader { geo in
-                            ZStack(alignment: .leading) {
-                                Capsule()
-                                    .fill(Color.gray.opacity(0.3))
-                                    .frame(height: 12)
-                                
-                                Capsule()
-                                    .fill(Color.lynkYellow)
-                                    .frame(width: min(geo.size.width * (currentMonthRevenue / max(monthlyGoal, 1)), geo.size.width), height: 12)
-                            }
-                        }
-                        .frame(height: 12)
-                        
-                        HStack {
-                            Text(currentMonthRevenue, format: .currency(code: "USD"))
-                                .font(.caption)
-                                .foregroundStyle(colorScheme == .dark ? .white : .black)
-                            Spacer()
-                            Text(monthlyGoal, format: .currency(code: "USD"))
-                                .font(.caption)
-                                .foregroundStyle(.gray)
-                        }
-                    }
-                    .padding()
-                    .background(colorScheme == .dark ? Color.lynkDarkGray : Color.white)
-                    .cornerRadius(16)
-                    .padding(.horizontal)
-                    .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+                    // --- MONTHLY GOAL ---
+                    GoalCard(current: currentMonthRevenue, target: monthlyGoal)
+                        .padding(.horizontal)
 
-                    // --- 3. STATS CARDS ---
+                    // --- STATS ---
                     HStack(spacing: 15) {
                         StatCard(
                             title: "Active Jobs",
                             value: "\(activeJobsCount)",
-                            icon: "briefcase.fill"
+                            icon: "car.fill"
                         )
                         
                         StatCard(
@@ -122,62 +102,152 @@ struct DashboardView: View {
                     }
                     .padding(.horizontal)
 
-                    // --- 4. CHART ---
-                    if !clients.isEmpty {
-                        RevenueChartView(clients: clients)
-                            .padding(.vertical)
+                    // --- CHART SECTION ---
+                    VStack(alignment: .leading, spacing: 10) {
+                        if totalRevenue == 0 {
+                            VStack(spacing: 15) {
+                                Image(systemName: "chart.bar.xaxis")
+                                    .font(.largeTitle)
+                                    .foregroundStyle(.gray)
+                                Text("No Income Yet")
+                                    .font(.headline)
+                                Text("Mark a service as 'Paid' to see your stats.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .frame(height: 200)
+                            .frame(maxWidth: .infinity)
                             .background(colorScheme == .dark ? Color.lynkDarkGray : Color.white)
                             .cornerRadius(16)
-                            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
                             .padding(.horizontal)
+                            
+                        } else {
+                            VStack(alignment: .leading) {
+                                RevenueChartView(clients: clients)
+                            }
+                            .background(colorScheme == .dark ? Color.lynkDarkGray : Color.white)
+                            .cornerRadius(16)
+                            .padding(.horizontal)
+                            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+                        }
                     }
-                    
-                    // --- 5. UPCOMING DEADLINES ---
+
+                    // --- RECENT SERVICES ---
                     VStack(alignment: .leading, spacing: 15) {
-                        Text("Upcoming Deadlines")
+                        Text("Recent Services")
                             .font(.headline)
                             .padding(.horizontal)
                         
-                        if recentProjects.isEmpty {
-                             Text("No active projects")
+                        if recentServices.isEmpty {
+                             Text("No active jobs")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .padding(.horizontal)
                         } else {
-                            // Show next 3 projects
-                            ForEach(recentProjects.prefix(3)) { project in
-                                HStack {
-                                    VStack(alignment: .leading) {
-                                        Text(project.title)
-                                            .font(.system(.body, design: .rounded))
-                                            .bold()
-                                            .foregroundStyle(colorScheme == .dark ? .white : .black)
-                                        Text(project.client?.name ?? "Unknown")
+                            ForEach(recentServices.prefix(3)) { service in
+                                NavigationLink(destination: PhotoInspectionView(service: service)) {
+                                    HStack {
+                                        VStack(alignment: .leading) {
+                                            Text(service.title)
+                                                .font(.body)
+                                                .bold()
+                                                .foregroundStyle(.primary)
+                                            
+                                            Text(service.vehicle?.make ?? "Unknown Car")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                        Spacer()
+                                        
+                                        Text(service.price, format: .currency(code: "USD"))
                                             .font(.caption)
-                                            .foregroundStyle(.gray)
+                                            .padding(6)
+                                            .background(service.isPaid ? Color.green.opacity(0.2) : Color.orange.opacity(0.2))
+                                            .cornerRadius(6)
+                                            .foregroundStyle(service.isPaid ? .green : .orange)
+                                        
+                                        Image(systemName: "arrow.right")
+                                            .font(.caption)
+                                            .bold()
+                                            .foregroundStyle(.primary)
                                     }
-                                    Spacer()
-                                    Text(project.dueDate, style: .date)
-                                        .font(.caption)
-                                        .padding(6)
-                                        .background(Color.lynkYellow.opacity(0.2))
-                                        .cornerRadius(6)
+                                    .padding()
+                                    .background(colorScheme == .dark ? Color.lynkDarkGray : Color.white)
+                                    .cornerRadius(12)
+                                    .padding(.horizontal)
+                                    .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
                                 }
-                                .padding()
-                                .background(colorScheme == .dark ? Color.lynkDarkGray : Color.white)
-                                .cornerRadius(12)
-                                .padding(.horizontal)
-                                .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
                             }
                         }
                     }
-                    
                     Spacer(minLength: 40)
                 }
-                .padding(.bottom, 20)
             }
-            .premiumBackground() // Uses your Theme.swift logic
+            .premiumBackground()
         }
+    }
+}
+
+// --- SUB-VIEW: GOAL CARD WITH LOGIC ---
+struct GoalCard: View {
+    let current: Double
+    let target: Double
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        let percent = target > 0 ? (current / target) : 0
+        let isGoalReached = percent >= 1.0
+        
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Monthly Goal")
+                    .font(.subheadline)
+                    .foregroundStyle(.gray)
+                Spacer()
+                
+                if isGoalReached {
+                    Text("🎉 COMPLETED")
+                        .font(.caption)
+                        .bold()
+                        .padding(4)
+                        .background(Color.green)
+                        .foregroundStyle(.white)
+                        .cornerRadius(4)
+                } else {
+                    Text("\(Int(percent * 100))%")
+                        .bold()
+                        .foregroundStyle(Color.lynkYellow)
+                }
+            }
+            
+            // Progress Bar
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(height: 12)
+                    
+                    Capsule()
+                        .fill(isGoalReached ? Color.green : Color.lynkYellow)
+                        .frame(width: min(geo.size.width * percent, geo.size.width), height: 12)
+                }
+            }
+            .frame(height: 12)
+            
+            HStack {
+                Text(current, format: .currency(code: "USD"))
+                    .font(.caption)
+                    .foregroundStyle(colorScheme == .dark ? .white : .black)
+                Spacer()
+                Text(target, format: .currency(code: "USD"))
+                    .font(.caption)
+                    .foregroundStyle(.gray)
+            }
+        }
+        .padding()
+        .background(colorScheme == .dark ? Color.lynkDarkGray : Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 }
 

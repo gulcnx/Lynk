@@ -20,7 +20,6 @@ struct ClientListView: View {
                 ForEach(clients) { client in
                     NavigationLink(destination: ClientDetailView(client: client)) {
                         HStack(spacing: 16) {
-                            // Avatar
                             ZStack {
                                 Circle()
                                     .fill(Color.lynkYellow)
@@ -35,7 +34,6 @@ struct ClientListView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(client.name)
                                     .font(.system(.headline, design: .rounded))
-                                    // 👇 Dynamic Text Color
                                     .foregroundStyle(colorScheme == .dark ? .white : .black)
                                 Text(client.email)
                                     .font(.caption)
@@ -44,7 +42,7 @@ struct ClientListView: View {
                             
                             Spacer()
                             
-                            Text(client.totalRevenue, format: .currency(code: "USD"))
+                            Text(client.totalLifetimeValue, format: .currency(code: "USD"))
                                 .font(.subheadline)
                                 .bold()
                                 .foregroundStyle(Color.lynkYellow)
