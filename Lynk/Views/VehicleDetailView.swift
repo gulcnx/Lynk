@@ -56,7 +56,7 @@ struct VehicleDetailView: View {
                 Spacer()
                 Text("Total: \(vehicle.totalRevenue, format: .currency(code: "USD"))")
                     .font(.caption)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(Color.lynkMint)
             }) {
                 if let services = vehicle.services?.sorted(by: { $0.date > $1.date }), !services.isEmpty {
                     ForEach(services) { service in
@@ -71,7 +71,7 @@ struct VehicleDetailView: View {
 
                                 Text("Inspection Tools")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .secondaryText()
                                     .padding(.top, 4)
 
                                 HStack(spacing: 12) {
@@ -79,36 +79,35 @@ struct VehicleDetailView: View {
                                         VStack(spacing: 6) {
                                             Image(systemName: "car.side.fill")
                                                 .font(.title2)
-                                                .foregroundStyle(.blue)
+                                                .foregroundStyle(Color.blue)
                                             Text("Diagram")
                                                 .font(.caption2)
                                                 .bold()
-                                                .foregroundStyle(.primary)
+                                                .primaryText()
                                         }
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 12)
                                         .background(Color.blue.opacity(0.1))
                                         .cornerRadius(10)
                                     }
-                                    .buttonStyle(.plain)
+                                    .buttonStyle(.borderless) // 👈 CRITICAL FIX: Prevents row click conflict
 
-                                    // 2. THE PHOTOS (Evidence)
                                     NavigationLink(destination: PhotoInspectionView(service: service)) {
                                         VStack(spacing: 6) {
                                             Image(systemName: "camera.fill")
                                                 .font(.title2)
-                                                .foregroundStyle(.blue)
+                                                .foregroundStyle(Color.blue)
                                             Text("Photos")
                                                 .font(.caption2)
                                                 .bold()
-                                                .foregroundStyle(.primary)
+                                                .primaryText()
                                         }
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 12)
                                         .background(Color.blue.opacity(0.1))
                                         .cornerRadius(10)
                                     }
-                                    .buttonStyle(.plain)
+                                    .buttonStyle(.borderless) // 👈 CRITICAL FIX
                                 }
                                 .padding(.bottom, 8)
                                 
@@ -123,9 +122,9 @@ struct VehicleDetailView: View {
                                             service.isPaid ? "Paid" : "Mark Paid",
                                             systemImage: service.isPaid ? "checkmark.circle.fill" : "circle"
                                         )
-                                        .foregroundStyle(service.isPaid ? .green : .orange)
+                                        .foregroundStyle(service.isPaid ? Color.lynkMint : .orange)
                                     }
-                                    .buttonStyle(.plain)
+                                    .buttonStyle(.borderless) // 👈 CRITICAL FIX
                                     
                                     Spacer()
                                     
@@ -141,7 +140,7 @@ struct VehicleDetailView: View {
                                             .background(Color.blue.opacity(0.1))
                                             .cornerRadius(6)
                                     }
-                                    .buttonStyle(.plain)
+                                    .buttonStyle(.borderless) // 👈 CRITICAL FIX
                                 }
                                 .padding(.top, 5)
                             }
@@ -152,7 +151,7 @@ struct VehicleDetailView: View {
                                         .font(.headline)
                                     Text(service.date.formatted(date: .abbreviated, time: .omitted))
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .secondaryText()
                                 }
                                 Spacer()
                                 Text(service.price, format: .currency(code: "USD"))

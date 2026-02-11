@@ -32,6 +32,7 @@ struct ClientDetailView: View {
                     }) {
                         Label("Call", systemImage: "phone.fill")
                             .frame(maxWidth: .infinity)
+                            .foregroundStyle(Color.white)
                     }
                     .buttonStyle(.borderedProminent)
                     

@@ -11,71 +11,33 @@ import SwiftData
 struct ExpensesView: View {
     @Query(sort: \Expense.date, order: .reverse) private var expenses: [Expense]
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.colorScheme) var colorScheme
     
     @State private var showAddSheet = false
     
-    // Calculate Total Expenses
     var totalExpenses: Double {
         expenses.reduce(0) { $0 + $1.amount }
     }
     
     var body: some View {
         NavigationStack {
-            VStack {
-                // Summary Card
-                VStack(spacing: 5) {
-                    Text("Total Expenses")
-                        .font(.subheadline)
-                        .foregroundStyle(.gray)
-                    Text(totalExpenses, format: .currency(code: "USD"))
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundStyle(colorScheme == .dark ? .white : .black)
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(colorScheme == .dark ? Color.lynkDarkGray : Color.white)
-                .cornerRadius(16)
-                .padding()
+            VStack(spacing: 24) {
+                // 1. The Summary Card
+                summaryCard
                 
-                // Expense List
-                if expenses.isEmpty {
-                    ContentUnavailableView("No Expenses", systemImage: "creditcard", description: Text("Track your business costs here."))
-                } else {
-                    List {
-                        ForEach(expenses) { expense in
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(expense.title)
-                                        .font(.headline)
-                                        .foregroundStyle(colorScheme == .dark ? .white : .black)
-                                    Text(expense.date.formatted(date: .abbreviated, time: .omitted))
-                                        .font(.caption)
-                                        .foregroundStyle(.gray)
-                                }
-                                Spacer()
-                                Text(expense.amount, format: .currency(code: "USD"))
-                                    .bold()
-                                    .foregroundStyle(.red) // Red for "Money Out"
-                            }
-                            .listRowBackground(colorScheme == .dark ? Color.lynkDarkGray : Color.white)
-                        }
-                        .onDelete { indexSet in
-                            for index in indexSet {
-                                modelContext.delete(expenses[index])
-                            }
-                        }
-                    }
-                    .scrollContentBackground(.hidden)
-                }
+                // 2. The List
+                expensesList
             }
+            .padding(.top)
             .premiumBackground()
             .navigationTitle("Expenses")
             .toolbar {
                 Button(action: { showAddSheet = true }) {
                     Image(systemName: "plus")
                         .font(.headline)
-                        .foregroundStyle(Color.lynkYellow)
+                        .foregroundStyle(Color.lynkMint)
+                        .padding(8)
+                        .background(Color.lynkCardDark) // Use Theme color
+                        .clipShape(Circle())
                 }
             }
             .sheet(isPresented: $showAddSheet) {
@@ -84,9 +46,85 @@ struct ExpensesView: View {
             }
         }
     }
+    
+    var summaryCard: some View {
+        VStack(spacing: 8) {
+            Text("TOTAL EXPENSES")
+                .font(.caption)
+                .fontWeight(.bold)
+                .secondaryText()
+                .tracking(1)
+            
+            Text(totalExpenses, format: .currency(code: "USD"))
+                .font(.system(size: 40, weight: .bold, design: .rounded))
+                .primaryText()
+        }
+        .frame(maxWidth: .infinity)
+        .padding(25)
+        .luxuryCardStyle()
+        .padding(.horizontal)
+    }
+    
+    @ViewBuilder
+    var expensesList: some View {
+        if expenses.isEmpty {
+            ContentUnavailableView {
+                Label("No Expenses", systemImage: "creditcard")
+                    .foregroundStyle(Color.lynkMint)
+            } description: {
+                Text("Track your business costs here.")
+                    .secondaryText()
+            }
+            .scrollContentBackground(.hidden) // Fix for empty state too
+        } else {
+            List {
+                ForEach(expenses) { expense in
+                    ExpenseRow(expense: expense)
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear) // Transparent row
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                modelContext.delete(expense)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                }
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden) // 👇 CRITICAL FIX
+        }
+    }
 }
 
-// Simple Sheet to Add Expense
+struct ExpenseRow: View {
+    let expense: Expense
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(expense.title)
+                    .font(.headline)
+                    .primaryText()
+                Text(expense.date.formatted(date: .abbreviated, time: .omitted))
+                    .font(.caption)
+                    .secondaryText()
+            }
+            
+            Spacer()
+            
+            Text(expense.amount, format: .currency(code: "USD"))
+                .font(.subheadline)
+                .bold()
+                .foregroundStyle(Color.lynkRed)
+        }
+        .padding()
+        .luxuryCardStyle()
+        .padding(.bottom, 8)
+    }
+}
+
+// MARK: - Add Expense Sheet
 struct AddExpenseSheet: View {
     @Environment(\.modelContext) var modelContext
     @Environment(\.dismiss) var dismiss
@@ -97,10 +135,15 @@ struct AddExpenseSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                TextField("Expense Name (e.g. Hosting)", text: $title)
-                TextField("Amount ($)", text: $amount)
-                    .keyboardType(.decimalPad)
+                Section(header: Text("Details")) {
+                    TextField("Expense Name", text: $title)
+                    TextField("Amount ($)", text: $amount)
+                        .keyboardType(.decimalPad)
+                }
+                // 👇 FIX: Remove hardcoded colors. Default List row background is fine in sheets.
             }
+            // 👇 FIX: Remove .scrollContentBackground(.hidden) here to let the sheet look standard
+            // or use standard system background.
             .navigationTitle("New Expense")
             .toolbar {
                 Button("Save") {
@@ -111,6 +154,7 @@ struct AddExpenseSheet: View {
                     }
                 }
                 .disabled(title.isEmpty || amount.isEmpty)
+                .foregroundStyle(Color.lynkMint)
             }
         }
     }

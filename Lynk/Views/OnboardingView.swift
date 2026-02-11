@@ -43,7 +43,7 @@ struct OnboardingView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(height: 120)
-                    .foregroundStyle(Color.lynkYellow)
+                    .foregroundStyle(Color.lynkMint)
                 
                 Text("What should we call you?")
                     .font(.title)
@@ -81,7 +81,7 @@ struct OnboardingView: View {
                         .foregroundStyle(.black)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.lynkYellow)
+                        .background(Color.lynkMint)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
                 .padding(.horizontal, 40)
@@ -108,7 +108,7 @@ struct OnboardingPage: View {
                 .resizable()
                 .scaledToFit()
                 .frame(height: 120)
-                .foregroundStyle(Color.lynkYellow)
+                .foregroundStyle(Color.lynkMint)
             
             Text(title)
                 .font(.system(.largeTitle, design: .rounded))

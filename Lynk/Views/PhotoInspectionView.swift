@@ -23,7 +23,7 @@ struct PhotoInspectionView: View {
                 VStack {
                     Image(systemName: "camera.shutter.button.fill")
                         .font(.system(size: 60))
-                        .foregroundStyle(Color.lynkYellow)
+                        .foregroundStyle(Color.lynkMint)
                         .padding()
                     
                     Text("Visual Evidence")

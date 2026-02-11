@@ -31,6 +31,6 @@ struct MainTabView: View {
                     Label("Settings", systemImage: "gear")
                 }
         }
-        .tint(.lynkYellow) 
+        .tint(.lynkMint) 
     }
 }
