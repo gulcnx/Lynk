@@ -20,98 +20,126 @@ struct ClientDetailView: View {
 
     var body: some View {
         List {
-            // --- HEADER (Contact Info) ---
-            Section {
-                HStack(spacing: 20) {
-                    // Call Button
+            // --- TOP CARD: REVENUE & CONTACT ---
+            VStack(spacing: 20) {
+                // Revenue Summary
+                VStack(spacing: 8) {
+                    Text("LIFETIME VALUE")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .secondaryText()
+                        .tracking(1)
+                    
+                    Text(viewModel.formattedEarnings)
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .primaryText()
+                }
+                
+                Divider().background(Color.gray.opacity(0.3))
+                
+                // Action Buttons
+                HStack(spacing: 15) {
                     Button(action: {
                         let cleanPhone = viewModel.client.phoneNumber.filter("0123456789".contains)
                         if let url = URL(string: "tel://\(cleanPhone)"), UIApplication.shared.canOpenURL(url) {
                             UIApplication.shared.open(url)
                         }
                     }) {
-                        Label("Call", systemImage: "phone.fill")
-                            .frame(maxWidth: .infinity)
-                            .foregroundStyle(Color.white)
+                        HStack {
+                            Image(systemName: "phone.fill")
+                            Text("Call")
+                        }
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color.lynkMint.opacity(0.1))
+                        .foregroundStyle(Color.lynkMint)
+                        .cornerRadius(10)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.borderless)
                     
-                    // Email Button
                     Button(action: {
                         if let url = URL(string: "mailto:\(viewModel.client.email)") {
                             UIApplication.shared.open(url)
                         }
                     }) {
-                        Label("Email", systemImage: "envelope.fill")
-                            .frame(maxWidth: .infinity)
+                        HStack {
+                            Image(systemName: "envelope.fill")
+                            Text("Email")
+                        }
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color.lynkMint.opacity(0.1))
+                        .foregroundStyle(Color.lynkMint)
+                        .cornerRadius(10)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.borderless)
                 }
-                .padding(.vertical, 5)
+            }
+            .padding()
+            .luxuryCardStyle()
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 20, trailing: 16))
+            
+            // --- THE GARAGE ---
+            Text("CLIENT'S GARAGE")
+                .font(.caption)
+                .fontWeight(.bold)
+                .secondaryText()
+                .padding(.horizontal, 4)
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            
+            if let vehicles = viewModel.client.vehicles, !vehicles.isEmpty {
+                ForEach(vehicles) { vehicle in
+                    ZStack {
+                        NavigationLink(destination: VehicleDetailView(vehicle: vehicle)) {
+                            EmptyView()
+                        }
+                        .opacity(0)
+                        
+                        ClientVehicleCard(vehicle: vehicle)
+                    }
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 8, trailing: 16))
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            viewModel.deleteVehicle(vehicle: vehicle, context: modelContext)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                }
+            } else {
+                ContentUnavailableView {
+                    Label("No Vehicles", systemImage: "car")
+                        .foregroundStyle(Color.lynkMint)
+                } description: {
+                    Text("Add a vehicle to start tracking services.")
+                        .secondaryText()
+                } actions: {
+                    Button("Add Vehicle") { showAddVehicleSheet = true }
+                        .foregroundStyle(Color.lynkMint)
+                }
                 .listRowBackground(Color.clear)
             }
-            
-            // --- REVENUE SUMMARY ---
-            Section {
-                VStack(alignment: .leading) {
-                    Text("Lifetime Value")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(viewModel.formattedEarnings)
-                        .font(.largeTitle)
-                        .bold()
-                        .foregroundStyle(.green)
-                }
-            }
-            
-            // --- THE GARAGE (Vehicles List) ---
-            Section(header: Text("Garage (Vehicles)")) {
-                if let vehicles = viewModel.client.vehicles, !vehicles.isEmpty {
-                    ForEach(vehicles) { vehicle in
-                        NavigationLink(destination: VehicleDetailView(vehicle: vehicle)) {
-                            HStack {
-                                Image(systemName: "car.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(.blue)
-                                    .frame(width: 40)
-                                
-                                VStack(alignment: .leading) {
-                                    Text("\(vehicle.year) \(vehicle.make) \(vehicle.model)")
-                                        .font(.headline)
-                                    Text(vehicle.plateNumber.isEmpty ? "No Plate" : vehicle.plateNumber)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                            }
-                            .padding(.vertical, 4)
-                        }
-                    }
-                    .onDelete { indexSet in
-                        for index in indexSet {
-                            if let vehicles = viewModel.client.vehicles {
-                                viewModel.deleteVehicle(vehicle: vehicles[index], context: modelContext)
-                            }
-                        }
-                    }
-                } else {
-                    ContentUnavailableView {
-                        Label("No Vehicles", systemImage: "car")
-                    } description: {
-                        Text("Add a vehicle to start tracking services.")
-                    } actions: {
-                        Button("Add Vehicle") { showAddVehicleSheet = true }
-                    }
-                }
-            }
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .premiumBackground()
         .navigationTitle(viewModel.client.name)
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button("Add Vehicle") { showAddVehicleSheet = true }
-            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Edit") { showEditSheet = true }
+                    .foregroundStyle(Color.lynkMint)
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button("Add Vehicle") { showAddVehicleSheet = true }
+                    .bold()
+                    .foregroundStyle(Color.lynkMint)
             }
         }
         .sheet(isPresented: $showAddVehicleSheet) {
@@ -120,5 +148,40 @@ struct ClientDetailView: View {
         .sheet(isPresented: $showEditSheet) {
             EditClientView(client: viewModel.client)
         }
+    }
+}
+
+// --- SUB-VIEW ---
+struct ClientVehicleCard: View {
+    let vehicle: Vehicle
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(Color.blue.opacity(0.1))
+                    .frame(width: 50, height: 50)
+                Image(systemName: "car.fill")
+                    .font(.title3)
+                    .foregroundStyle(Color.blue)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text("\(vehicle.year) \(vehicle.make) \(vehicle.model)")
+                    .font(.headline)
+                    .primaryText()
+                Text(vehicle.plateNumber.isEmpty ? "No Plate Info" : vehicle.plateNumber)
+                    .font(.caption)
+                    .secondaryText()
+            }
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .secondaryText()
+        }
+        .padding()
+        .luxuryCardStyle()
     }
 }

@@ -38,6 +38,7 @@ struct OnboardingView: View {
             )
             .tag(2)
             
+            // Page 4: Name Input
             VStack(spacing: 20) {
                 Image(systemName: "person.crop.circle.badge.plus")
                     .resizable()
@@ -49,12 +50,32 @@ struct OnboardingView: View {
                     .font(.title)
                     .bold()
                 
-                TextField("Your First Name", text: $userName)
-                    .font(.headline)
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(10)
-                    .padding(.horizontal, 40)
+                // 👇 UPDATED: HStack with TextField and Next Arrow Button
+                HStack(spacing: 12) {
+                    TextField("Your First Name", text: $userName)
+                        .font(.headline)
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(12)
+                    
+                    Button(action: {
+                        // Smoothly slide to the final onboarding page
+                        withAnimation {
+                            currentPage = 4
+                        }
+                    }) {
+                        Image(systemName: "arrow.right")
+                            .font(.headline)
+                            .foregroundStyle(.black)
+                            .frame(width: 50, height: 50)
+                            .background(Color.lynkMint)
+                            .clipShape(Circle())
+                    }
+                    // Prevent clicking if the name is empty
+                    .disabled(userName.isEmpty)
+                    .opacity(userName.isEmpty ? 0.5 : 1.0)
+                }
+                .padding(.horizontal, 40)
                 
                 Text("We use this to personalize your dashboard.")
                     .font(.caption)
@@ -62,7 +83,7 @@ struct OnboardingView: View {
             }
             .tag(3)
             
-            // Page 4: Get Started
+            // Page 5: Get Started
             VStack {
                 OnboardingPage(
                     image: "checkmark.seal.fill",

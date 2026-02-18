@@ -15,42 +15,32 @@ struct ClientListView: View {
     
     var body: some View {
         NavigationStack {
-            // 👇 CHANGE 1: Use a List instead of ScrollView for better performance & swipe actions
-            List {
-                if clients.isEmpty {
-                    // Empty State
-                    ContentUnavailableView {
-                        Label("No Clients Yet", systemImage: "person.2.slash")
-                    } description: {
-                        Text("Add your first client to get started.")
-                    }
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                } else {
-                    ForEach(clients) { client in
-                        ZStack {
-                            // Invisible Navigation Link (The "SwiftUI Way" to hide arrows)
-                            NavigationLink(destination: ClientDetailView(client: client)) {
-                                EmptyView()
-                            }
-                            .opacity(0)
-                            
-                            // The Visible Card
-                            ClientCard(client: client)
+            ScrollView {
+                VStack(spacing: 12) {
+                    if clients.isEmpty {
+                        // Empty State
+                        VStack(spacing: 20) {
+                            Image(systemName: "person.2.slash")
+                                .font(.system(size: 50))
+                                .foregroundStyle(Color.gray)
+                            Text("No Clients Yet")
+                                .font(.headline)
+                                .primaryText() // 👈 Fixed
+                            Text("Add your first client to get started.")
+                                .font(.caption)
+                                .secondaryText() // 👈 Fixed
                         }
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)) // Add spacing
-                        .listRowBackground(Color.clear) // Make row transparent
-                        .listRowSeparator(.hidden) // Hide ugly lines
-                    }
-                    .onDelete { indexSet in
-                        for index in indexSet {
-                            modelContext.delete(clients[index])
+                        .padding(.top, 50)
+                    } else {
+                        ForEach(clients) { client in
+                            NavigationLink(destination: ClientDetailView(client: client)) {
+                                ClientCard(client: client)
+                            }
                         }
                     }
                 }
+                .padding()
             }
-            .listStyle(.plain) // Standard list style
-            .scrollContentBackground(.hidden) // 👇 CRITICAL: Makes list transparent so background shows!
             .premiumBackground()
             .navigationTitle("Clients")
             .toolbar {
@@ -78,7 +68,6 @@ struct ClientCard: View {
     
     var body: some View {
         HStack(spacing: 16) {
-            // Mint Avatar
             ZStack {
                 Circle()
                     .fill(Color.lynkMint)
@@ -94,10 +83,10 @@ struct ClientCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(client.name)
                     .font(.headline)
-                    .primaryText() // Theme dynamic color
+                    .primaryText() // 👈 Fixed White Text Bug
                 Text(client.email)
                     .font(.caption)
-                    .secondaryText() // Theme dynamic color
+                    .secondaryText() // 👈 Fixed
             }
             
             Spacer()
@@ -105,9 +94,8 @@ struct ClientCard: View {
             Image(systemName: "chevron.right")
                 .font(.caption)
                 .secondaryText()
-                .opacity(0.5)
         }
         .padding()
-        .luxuryCardStyle() // Uses your Theme
+        .luxuryCardStyle()
     }
 }

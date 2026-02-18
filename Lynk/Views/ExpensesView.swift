@@ -21,10 +21,7 @@ struct ExpensesView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
-                // 1. The Summary Card
                 summaryCard
-                
-                // 2. The List
                 expensesList
             }
             .padding(.top)
@@ -36,7 +33,7 @@ struct ExpensesView: View {
                         .font(.headline)
                         .foregroundStyle(Color.lynkMint)
                         .padding(8)
-                        .background(Color.lynkCardDark) // Use Theme color
+                        .background(Color.lynkCardDark)
                         .clipShape(Circle())
                 }
             }
@@ -57,7 +54,7 @@ struct ExpensesView: View {
             
             Text(totalExpenses, format: .currency(code: "USD"))
                 .font(.system(size: 40, weight: .bold, design: .rounded))
-                .primaryText()
+                .primaryText() // 👈 Fixed White Text Bug
         }
         .frame(maxWidth: .infinity)
         .padding(25)
@@ -75,13 +72,12 @@ struct ExpensesView: View {
                 Text("Track your business costs here.")
                     .secondaryText()
             }
-            .scrollContentBackground(.hidden) // Fix for empty state too
         } else {
             List {
                 ForEach(expenses) { expense in
                     ExpenseRow(expense: expense)
                         .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear) // Transparent row
+                        .listRowBackground(Color.clear)
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
                                 modelContext.delete(expense)
@@ -92,7 +88,7 @@ struct ExpensesView: View {
                 }
             }
             .listStyle(.plain)
-            .scrollContentBackground(.hidden) // 👇 CRITICAL FIX
+            .scrollContentBackground(.hidden)
         }
     }
 }
@@ -105,14 +101,12 @@ struct ExpenseRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(expense.title)
                     .font(.headline)
-                    .primaryText()
+                    .primaryText() // 👈 Fixed White Text Bug
                 Text(expense.date.formatted(date: .abbreviated, time: .omitted))
                     .font(.caption)
                     .secondaryText()
             }
-            
             Spacer()
-            
             Text(expense.amount, format: .currency(code: "USD"))
                 .font(.subheadline)
                 .bold()
@@ -140,10 +134,9 @@ struct AddExpenseSheet: View {
                     TextField("Amount ($)", text: $amount)
                         .keyboardType(.decimalPad)
                 }
-                // 👇 FIX: Remove hardcoded colors. Default List row background is fine in sheets.
+                // 👈 DELETED hardcoded dark background code here
             }
-            // 👇 FIX: Remove .scrollContentBackground(.hidden) here to let the sheet look standard
-            // or use standard system background.
+            // 👈 DELETED hardcoded dark background code here
             .navigationTitle("New Expense")
             .toolbar {
                 Button("Save") {

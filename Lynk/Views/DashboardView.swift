@@ -81,7 +81,7 @@ struct DashboardView: View {
                     GoalCard(current: currentMonthRevenue, target: monthlyGoal)
                         .padding(.horizontal)
                     
-                    // --- REVENUE CHART (ALWAYS VISIBLE NOW) ---
+                    // --- REVENUE CHART ---
                     VStack(alignment: .leading, spacing: 15) {
                         Text("REVENUE SOURCE")
                             .font(.caption)
@@ -89,7 +89,6 @@ struct DashboardView: View {
                             .secondaryText()
                             .padding(.horizontal)
                         
-                        // Pass clients directly. The Chart View handles the "Empty" state.
                         RevenueChartView(clients: clients)
                             .padding(.horizontal)
                     }
@@ -108,42 +107,32 @@ struct DashboardView: View {
                                 .padding(.horizontal)
                         } else {
                             ForEach(recentServices.prefix(5)) { service in
-                                NavigationLink(destination: PhotoInspectionView(service: service)) {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(service.title)
-                                                .font(.headline)
-                                                .primaryText()
-                                            Text(service.vehicle?.make ?? "Unknown")
-                                                .font(.caption)
-                                                .secondaryText()
-                                        }
-                                        Spacer()
-                                        
-                                        Text(service.price, format: .currency(code: "USD"))
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, 6)
-                                            .background(
-                                                service.isPaid
-                                                ? Color.lynkMint.opacity(0.2)
-                                                : Color.orange.opacity(0.2)
-                                            )
-                                            .foregroundStyle(
-                                                service.isPaid ? Color.lynkMint : Color.orange
-                                            )
-                                            .cornerRadius(8)
+                                if let vehicle = service.vehicle {
+                                    NavigationLink(destination: VehicleDetailView(vehicle: vehicle)) {
+                                        RecentActivityRow(service: service)
                                     }
-                                    .padding()
-                                    .luxuryCardStyle()
+                                } else {
+                                    RecentActivityRow(service: service)
                                 }
                             }
                             .padding(.horizontal)
                         }
                     }
                     
-                    Spacer(minLength: 50)
+                    // --- FOOTER ---
+                    VStack(spacing: 8) {
+                        Image(systemName: "sparkles")
+                            .font(.title3)
+                            .foregroundStyle(LinearGradient.lynkMintGradient)
+                        Text("LYNK STUDIO")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .tracking(3)
+                            .secondaryText()
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 40)
+                    .padding(.bottom, 20)
                 }
             }
             .premiumBackground()
@@ -151,7 +140,43 @@ struct DashboardView: View {
     }
 }
 
-// --- UPDATED SUB-VIEWS ---
+// --- SUB-VIEWS ---
+
+// Isolated Row UI for Recent Services
+struct RecentActivityRow: View {
+    let service: Service
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(service.title)
+                    .font(.headline)
+                    .primaryText()
+                Text(service.vehicle?.make ?? "Unknown Vehicle")
+                    .font(.caption)
+                    .secondaryText()
+            }
+            Spacer()
+            
+            Text(service.price, format: .currency(code: "USD"))
+                .font(.subheadline)
+                .fontWeight(.bold)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(
+                    service.isPaid
+                    ? Color.lynkMint.opacity(0.2)
+                    : Color.orange.opacity(0.2)
+                )
+                .foregroundStyle(
+                    service.isPaid ? Color.lynkMint : Color.orange
+                )
+                .cornerRadius(8)
+        }
+        .padding()
+        .luxuryCardStyle()
+    }
+}
 
 struct StatCard: View {
     let title: String

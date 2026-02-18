@@ -11,72 +11,160 @@ import VisionKit
 
 struct AddVehicleView: View {
     @State private var showScanner = false
+    @State private var showPlateScanner = false
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
     var client: Client
     
-    @State private var make = ""
-    @State private var model = ""
-    @State private var yearString = ""
-    @State private var color = ""
+    private let db = VehicleDataManager.shared
+    
+    // --- SMART PICKER STATES ---
+    @State private var selectedMake = "Porsche"
+    @State private var customMake = ""
+    
+    @State private var selectedModel = "911"
+    @State private var customModel = ""
+    
+    @State private var selectedYear: String = String(Calendar.current.component(.year, from: Date()))
+    @State private var customYear = ""
+    
+    @State private var selectedColor = "Black"
+    @State private var customColor = ""
+    
     @State private var plate = ""
     @State private var vin = ""
     
+    // --- COMPUTED FINAL VALUES ---
+    var finalMake: String { selectedMake == "Other..." ? customMake : selectedMake }
+    var finalModel: String { (selectedMake == "Other..." || selectedModel == "Other...") ? customModel : selectedModel }
+    var finalColor: String { selectedColor == "Custom..." ? customColor : selectedColor }
+    
+    var finalYear: Int {
+        let yearString = selectedYear == "Other..." ? customYear : selectedYear
+        return Int(yearString) ?? Calendar.current.component(.year, from: Date())
+    }
+    
     var isValid: Bool {
-        return !make.isEmpty && !model.isEmpty
+        return !finalMake.isEmpty && !finalModel.isEmpty
     }
 
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Vehicle Details")) {
-                    HStack {
-                        TextField("Make (e.g. BMW)", text: $make)
-                        Divider()
-                        TextField("Model (e.g. X5)", text: $model)
+                // --- VEHICLE DETAILS ---
+                Section(header: Text("Vehicle Details").foregroundStyle(Color.lynkMint)) {
+                    
+                    // 1. MAKE PICKER
+                    Picker("Make", selection: $selectedMake) {
+                        ForEach(db.data.makes, id: \.self) { make in
+                            Text(make).tag(make)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .onChange(of: selectedMake) { oldValue, newValue in
+                        if let models = db.data.models[newValue], let first = models.first {
+                            selectedModel = first
+                        } else {
+                            selectedModel = "Other..."
+                        }
                     }
                     
-                    HStack {
-                        TextField("Year", text: $yearString)
-                            .keyboardType(.numberPad)
-                            .frame(width: 80)
-                        Divider()
-                        TextField("Color", text: $color)
+                    if selectedMake == "Other..." {
+                        TextField("Enter Custom Make", text: $customMake)
                     }
                     
-                    TextField("License Plate", text: $plate)
-                        .autocapitalization(.allCharacters)
-                }
-                
-                Section(header: Text("Identification")) {
+                    // 2. MODEL PICKER
+                    if selectedMake != "Other..." {
+                        Picker("Model", selection: $selectedModel) {
+                            let availableModels = db.data.models[selectedMake] ?? ["Other..."]
+                            ForEach(availableModels, id: \.self) { model in
+                                Text(model).tag(model)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                    }
+                    
+                    if selectedMake == "Other..." || selectedModel == "Other..." {
+                        TextField("Enter Custom Model", text: $customModel)
+                    }
+                    
+                    // 3. YEAR PICKER (Now supports Custom)
+                    Picker("Year", selection: $selectedYear) {
+                        ForEach(db.years, id: \.self) { year in
+                            Text(year).tag(year)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    
+                    if selectedYear == "Other..." {
+                        TextField("Enter Custom Year (e.g. 1969)", text: $customYear)
+                            .keyboardType(.numberPad) // Opens number keyboard
+                    }
+                    
+                    // 4. COLOR PICKER
+                    Picker("Color", selection: $selectedColor) {
+                        ForEach(db.data.colors, id: \.self) { color in
+                            Text(color).tag(color)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    
+                    if selectedColor == "Custom..." {
+                        TextField("Enter Custom Color", text: $customColor)
+                    }
+                    
+                    // 5. PLATE
                     HStack {
-                        TextField("VIN (Chassis No)", text: $vin)
-                            .textInputAutocapitalization(.characters)
+                        TextField("License Plate", text: $plate)
+                            .autocapitalization(.allCharacters)
                         
                         if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
-                            // REAL PHONE: Show Camera
-                            Button(action: {
-                                showScanner = true
-                            }) {
+                            Button(action: { showPlateScanner = true }) {
                                 Image(systemName: "camera.viewfinder")
                                     .font(.title2)
-                                    .foregroundStyle(.blue)
+                                    .foregroundStyle(Color.lynkMint)
                             }
                         } else {
-                            // SIMULATOR: Debug Button
-                            Button(action: {
-                                vin = "WP0AB2A9XLS123456"
-                            }) {
+                            Button(action: { plate = "LXY1234" }) {
                                 HStack {
                                     Text("Test")
                                         .font(.caption)
                                         .bold()
                                     Image(systemName: "magic.wand")
                                 }
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(Color.lynkMint)
                                 .padding(6)
-                                .background(Color.orange.opacity(0.1))
+                                .background(Color.lynkMint.opacity(0.1))
+                                .cornerRadius(6)
+                            }
+                        }
+                    }
+                }
+                
+                // --- IDENTIFICATION ---
+                Section(header: Text("Identification").foregroundStyle(Color.lynkMint)) {
+                    HStack {
+                        TextField("VIN (Chassis No)", text: $vin)
+                            .textInputAutocapitalization(.characters)
+                        
+                        if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
+                            Button(action: { showScanner = true }) {
+                                Image(systemName: "camera.viewfinder")
+                                    .font(.title2)
+                                    .foregroundStyle(Color.lynkMint)
+                            }
+                        } else {
+                            Button(action: { vin = "WP0AB2A9XLS123456" }) {
+                                HStack {
+                                    Text("Test")
+                                        .font(.caption)
+                                        .bold()
+                                    Image(systemName: "magic.wand")
+                                }
+                                .foregroundStyle(Color.lynkMint)
+                                .padding(6)
+                                .background(Color.lynkMint.opacity(0.1))
                                 .cornerRadius(6)
                             }
                         }
@@ -87,10 +175,15 @@ struct AddVehicleView: View {
                 VINScanner(scannedCode: $vin)
                     .presentationDetents([.medium, .large])
             }
+            .sheet(isPresented: $showPlateScanner) {
+                PlateScanner(scannedCode: $plate)
+                    .presentationDetents([.medium, .large])
+            }
             .navigationTitle("Add Vehicle")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
+                        .foregroundStyle(.gray)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
@@ -99,18 +192,18 @@ struct AddVehicleView: View {
                         dismiss()
                     }
                     .disabled(!isValid)
+                    .foregroundStyle(isValid ? Color.lynkMint : .gray)
                 }
             }
         }
     }
     
     func saveVehicle() {
-        let yearInt = Int(yearString) ?? 2024
         let newVehicle = Vehicle(
-            make: make,
-            model: model,
-            year: yearInt,
-            color: color,
+            make: finalMake,
+            model: finalModel,
+            year: finalYear,
+            color: finalColor,
             plateNumber: plate
         )
         newVehicle.vin = vin
