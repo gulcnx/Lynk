@@ -14,6 +14,24 @@ struct VehicleDetailView: View {
     @State private var showAddServiceSheet = false
     @State private var showEditVehicleSheet = false
     
+    func getVehicleColor(_ colorString: String) -> Color {
+        switch colorString.lowercased() {
+        case "red": return .red
+        case "blue": return .blue
+        case "black": return .black
+        case "white": return .white
+        case "gray", "grey": return .gray
+        case "silver": return Color(white: 0.75)
+        case "green": return .green
+        case "yellow": return .yellow
+        case "orange": return .orange
+        case "purple": return .purple
+        case "brown": return .brown
+        case "pink": return .pink
+        default: return .secondary
+        }
+    }
+    
     var body: some View {
         List {
             // --- CAR HEADER ---
@@ -22,7 +40,7 @@ struct VehicleDetailView: View {
                     HStack {
                         Image(systemName: "car.side.fill")
                             .font(.system(size: 40))
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(getVehicleColor(vehicle.color)) 
                         
                         VStack(alignment: .leading) {
                             Text("\(vehicle.year) \(vehicle.make)")
@@ -43,6 +61,7 @@ struct VehicleDetailView: View {
                         }
                         if !vehicle.plateNumber.isEmpty {
                             Label(vehicle.plateNumber, systemImage: "rectangle.and.pencil.and.ellipsis")
+                                .foregroundStyle(getVehicleColor(vehicle.color))
                         }
                     }
                     .font(.caption)
@@ -97,13 +116,13 @@ struct VehicleDetailView: View {
 }
 
 // MARK: - ISOLATED ROW SUBVIEW
-// This completely fixes the "Double Navigation" bug by separating the state
 struct ServiceRowView: View {
     @Bindable var service: Service
-    
-    // We use State variables instead of NavigationLinks to control routing safely
+    @EnvironmentObject var store: StoreManager
     @State private var navigateToDiagram = false
     @State private var navigateToPhotos = false
+    @State private var showPaywallAlert = false
+    @State private var showPaywall = false
     
     var body: some View {
         DisclosureGroup {
@@ -123,7 +142,7 @@ struct ServiceRowView: View {
                     
                     // 1. DIAGRAM BUTTON
                     Button(action: {
-                        navigateToDiagram = true // Triggers navigation manually
+                        navigateToDiagram = true
                     }) {
                         VStack(spacing: 6) {
                             Image(systemName: "car.side.fill")
@@ -146,7 +165,7 @@ struct ServiceRowView: View {
 
                     // 2. PHOTOS BUTTON
                     Button(action: {
-                        navigateToPhotos = true // Triggers navigation manually
+                        navigateToPhotos = true
                     }) {
                         VStack(spacing: 6) {
                             Image(systemName: "camera.fill")
@@ -189,8 +208,14 @@ struct ServiceRowView: View {
                     
                     // GENERATE INVOICE BUTTON
                     Button(action: {
-                        if let url = InvoiceGenerator.generateInvoice(for: service) {
-                            sharePDF(url: url)
+                        if store.hasProAccess {
+                            // Pro user - generate the PDF
+                            if let url = InvoiceGenerator.generateInvoice(for: service) {
+                                sharePDF(url: url)
+                            }
+                        } else {
+                            // Free user - show paywall
+                            showPaywallAlert = true
                         }
                     }) {
                         Label("Invoice", systemImage: "square.and.arrow.up")
@@ -200,6 +225,16 @@ struct ServiceRowView: View {
                             .cornerRadius(6)
                     }
                     .buttonStyle(.borderless)
+                    .alert("Pro Feature", isPresented: $showPaywallAlert) {
+                        Button("Get Pro Lynk") { showPaywall = true }
+                        Button("Cancel", role: .cancel) { } // 👈 Handled naturally by iOS
+                    } message: {
+                        Text("Generating professional PDF invoices is a Lynk Pro feature.")
+                    }
+                    // 👇 Fixed! Should be a .sheet, not a navigationDestination
+                    .sheet(isPresented: $showPaywall) {
+                        PaywallView()
+                    }
                 }
                 .padding(.top, 5)
             }

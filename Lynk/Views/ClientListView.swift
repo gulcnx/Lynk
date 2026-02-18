@@ -11,7 +11,11 @@ import SwiftData
 struct ClientListView: View {
     @Query(sort: \Client.name) private var clients: [Client]
     @Environment(\.modelContext) var modelContext
+    
+    @EnvironmentObject var store: StoreManager
     @State private var showAddSheet = false
+    @State private var showPaywallAlert = false
+    @State private var showPaywall = false
     
     var body: some View {
         NavigationStack {
@@ -25,10 +29,10 @@ struct ClientListView: View {
                                 .foregroundStyle(Color.gray)
                             Text("No Clients Yet")
                                 .font(.headline)
-                                .primaryText() // 👈 Fixed
+                                .primaryText()
                             Text("Add your first client to get started.")
                                 .font(.caption)
-                                .secondaryText() // 👈 Fixed
+                                .secondaryText()
                         }
                         .padding(.top, 50)
                     } else {
@@ -45,7 +49,13 @@ struct ClientListView: View {
             .navigationTitle("Clients")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: { showAddSheet = true }) {
+                    Button(action: {
+                        if !store.hasProAccess && clients.count >= 5 {
+                            showPaywallAlert = true // Blocked!
+                        } else {
+                            showAddSheet = true // Allowed!
+                        }
+                    }) {
                         Image(systemName: "plus")
                             .font(.headline)
                             .foregroundStyle(Color.lynkMint)
@@ -57,6 +67,15 @@ struct ClientListView: View {
             }
             .sheet(isPresented: $showAddSheet) {
                 AddClientView()
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+            }
+            .alert("Client Limit Reached", isPresented: $showPaywallAlert) {
+                Button("Got It", role: .cancel) { }
+                Button("Get Pro Lynk") { showPaywall = true }
+            } message: {
+                Text("Free users can manage up to 5 clients. Get Pro to add more clients.")
             }
         }
     }
@@ -83,10 +102,10 @@ struct ClientCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(client.name)
                     .font(.headline)
-                    .primaryText() // 👈 Fixed White Text Bug
+                    .primaryText()
                 Text(client.email)
                     .font(.caption)
-                    .secondaryText() // 👈 Fixed
+                    .secondaryText()
             }
             
             Spacer()

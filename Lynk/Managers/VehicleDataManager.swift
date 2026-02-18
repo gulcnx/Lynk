@@ -20,7 +20,7 @@ class VehicleDataManager {
     
     var data: VehicleDatabase
     
-    // Dynamic Years as Strings (so we can add "Other...")
+    // Dynamic Years as Strings
     var years: [String] {
         let currentYear = Calendar.current.component(.year, from: Date())
         var yearStrings = Array(1990...(currentYear + 1)).reversed().map { String($0) }
@@ -36,11 +36,10 @@ class VehicleDataManager {
             "Mercedes-Benz": ["C-Class", "E-Class", "S-Class", "Other..."],
             "Porsche": ["911", "Cayenne", "Macan", "Other..."]
         ],
-        colors: ["Black", "White", "Silver", "Gray", "Red", "Blue", "Custom..."]
+        colors: ["Black", "White", "Silver", "Gray", "Red", "Blue","Pink", "Custom..."]
     )
     
     private init() {
-        // 👇 FIXED: Now looks for "Vehicles.json" exactly as you named it
         if let url = Bundle.main.url(forResource: "Vehicles", withExtension: "json"),
            let rawData = try? Data(contentsOf: url),
            let decodedData = try? JSONDecoder().decode(VehicleDatabase.self, from: rawData) {

@@ -12,6 +12,7 @@ import SwiftData
 struct LynkApp: App {
     @AppStorage("hasSeenOnboarding") var hasSeenOnboarding: Bool = false
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
+    @StateObject private var store = StoreManager()
     
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -36,8 +37,10 @@ struct LynkApp: App {
             Group{
                 if hasSeenOnboarding {
                     MainTabView()
+                        .environmentObject(store)
                 } else {
                     OnboardingView(isOnboardingComplete: $hasSeenOnboarding)
+                        .environmentObject(store)
                 }
             }
             .preferredColorScheme(isDarkMode ? .dark : .light)

@@ -47,6 +47,10 @@ struct InvoiceGenerator {
 struct InvoiceView: View {
     let service: Service
     
+    // 👇 Tap into the data we saved in SettingsView!
+    @AppStorage("userLogoData") private var userLogoData: Data = Data()
+    @AppStorage("userName") private var userName: String = "User"
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             // --- HEADER ---
@@ -55,10 +59,18 @@ struct InvoiceView: View {
                     .font(.system(size: 48, weight: .bold))
                     .foregroundStyle(.black)
                 Spacer()
-                // You can add your App Icon or Logo here later
-                Image(systemName: "car.fill")
-                    .font(.largeTitle)
-                    .foregroundStyle(.gray)
+                
+                // 👇 Dynamic Logo Logic
+                if !userLogoData.isEmpty, let uiImage = UIImage(data: userLogoData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: 150, maxHeight: 60) // Keeps logo a reasonable size
+                } else {
+                    Image(systemName: "car.fill")
+                        .font(.largeTitle)
+                        .foregroundStyle(.gray)
+                }
             }
             
             Divider()
@@ -79,7 +91,7 @@ struct InvoiceView: View {
                 
                 Spacer()
                 
-                // Col 2: Vehicle (THE NEW PART)
+                // Col 2: Vehicle
                 VStack(alignment: .trailing) {
                     Text("Vehicle Serviced:")
                         .font(.headline)
@@ -148,7 +160,8 @@ struct InvoiceView: View {
             VStack(spacing: 5) {
                 Text("Thank you for your business!")
                     .font(.headline)
-                Text("Please make checks payable to Your Company Name")
+                // 👇 Automatically uses the name they typed in settings!
+                Text("Please make checks payable to \(userName)")
                     .font(.caption)
                     .foregroundStyle(.gray)
             }

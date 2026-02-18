@@ -115,14 +115,24 @@ struct ClientDetailView: View {
                 }
             } else {
                 ContentUnavailableView {
-                    Label("No Vehicles", systemImage: "car")
+                    Label {
+                        Text("No Vehicles")
+                            .primaryText()
+                    } icon: {
+                        ZStack {
+                            Image(systemName: "car.fill")
+                            Image(systemName: "line.diagonal")
+                                .font(.system(size: 55, weight: .bold))
+                        }
                         .foregroundStyle(Color.lynkMint)
+                        .font(.system(size: 45))
+                    }
                 } description: {
                     Text("Add a vehicle to start tracking services.")
                         .secondaryText()
                 } actions: {
                     Button("Add Vehicle") { showAddVehicleSheet = true }
-                        .foregroundStyle(Color.lynkMint)
+                        .foregroundStyle(Color.lynkMint.opacity(0.7))
                 }
                 .listRowBackground(Color.clear)
             }
@@ -138,7 +148,6 @@ struct ClientDetailView: View {
             }
             ToolbarItem(placement: .primaryAction) {
                 Button("Add Vehicle") { showAddVehicleSheet = true }
-                    .bold()
                     .foregroundStyle(Color.lynkMint)
             }
         }

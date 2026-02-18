@@ -2,7 +2,7 @@
 //  DashboardView.swift
 //  Lynk
 //
-//  Created by gülçin çetin on 2.02.2026.
+//  Created by gülçin çetin on 9.02.2026.
 //
 
 import SwiftUI
@@ -10,12 +10,16 @@ import SwiftData
 import Charts
 
 struct DashboardView: View {
+    @EnvironmentObject var store: StoreManager
+    
     @Query private var clients: [Client]
     @Query(sort: \Service.date, order: .forward) private var recentServices: [Service]
     @Query private var expenses: [Expense]
     
     @AppStorage("monthlyGoal") private var monthlyGoal: Double = 5000.0
     @AppStorage("userName") private var userName: String = "User"
+    
+    @State private var showPaywall = false
     
     // --- COMPUTED PROPERTIES ---
     var activeJobsCount: Int { recentServices.filter { !$0.isPaid }.count }
@@ -70,6 +74,43 @@ struct DashboardView: View {
                     .padding(.horizontal)
                     .padding(.top, 10)
                     
+                    // --- FREE TIER TRACKER ---
+                    if !store.hasProAccess {
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("FREE PLAN: \(clients.count) / 5 CLIENTS")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .secondaryText()
+                                
+                                // Progress bar
+                                GeometryReader { geo in
+                                    ZStack(alignment: .leading) {
+                                        Capsule().fill(Color.gray.opacity(0.3))
+                                        Capsule().fill(clients.count >= 5 ? Color.orange : Color.lynkMint)
+                                            .frame(width: geo.size.width * CGFloat(min(clients.count, 5)) / 5.0)
+                                    }
+                                }
+                                .frame(height: 6)
+                                .padding(.top, 4)
+                            }
+                            Spacer()
+                            Button(action: { showPaywall = true }) {
+                                Text("Upgrade")
+                                    .font(.caption)
+                                    .bold()
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(LinearGradient.lynkMintGradient)
+                                    .foregroundStyle(.black)
+                                    .cornerRadius(8)
+                            }
+                        }
+                        .padding()
+                        .luxuryCardStyle()
+                        .padding(.horizontal)
+                    }
+                    
                     // --- STATS ROW ---
                     HStack(spacing: 15) {
                         StatCard(title: "Active Jobs", value: "\(activeJobsCount)", icon: "car.fill")
@@ -89,8 +130,38 @@ struct DashboardView: View {
                             .secondaryText()
                             .padding(.horizontal)
                         
-                        RevenueChartView(clients: clients)
-                            .padding(.horizontal)
+                        ZStack {
+                            RevenueChartView(clients: clients)
+                                //  Blurs the chart if they aren't Pro!
+                                .blur(radius: store.hasProAccess ? 0 : 8)
+                                .allowsHitTesting(store.hasProAccess)
+                            
+                            //  The Lock Overlay
+                            if !store.hasProAccess {
+                                VStack(spacing: 12) {
+                                    Image(systemName: "lock.fill")
+                                        .font(.title)
+                                        .foregroundStyle(Color.lynkMint)
+                                    Text("Pro Analytics Locked")
+                                        .font(.headline)
+                                        .primaryText()
+                                    Button("Unlock with Pro") {
+                                        showPaywall = true
+                                    }
+                                    .font(.caption)
+                                    .bold()
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(LinearGradient.lynkMintGradient)
+                                    .foregroundStyle(.black)
+                                    .cornerRadius(8)
+                                }
+                                .padding()
+                                .background(Color.lynkCardDark.opacity(0.8))
+                                .cornerRadius(12)
+                            }
+                        }
+                        .padding(.horizontal)
                     }
 
                     // --- RECENT SERVICES ---
@@ -120,7 +191,7 @@ struct DashboardView: View {
                     }
                     
                     // --- FOOTER ---
-                    VStack(spacing: 8) {
+                    HStack(spacing: 8) {
                         Image(systemName: "sparkles")
                             .font(.title3)
                             .foregroundStyle(LinearGradient.lynkMintGradient)
@@ -136,6 +207,10 @@ struct DashboardView: View {
                 }
             }
             .premiumBackground()
+            //  Presents the Paywall Sheet globally for the Dashboard
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+            }
         }
     }
 }

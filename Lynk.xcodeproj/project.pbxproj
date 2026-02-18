@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B59A5C572F45B3100065783E /* Subscriptions.storekit in Resources */ = {isa = PBXBuildFile; fileRef = B59A5C562F45B3100065783E /* Subscriptions.storekit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		B52322D02F308BB70042441B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		B52322BE2F308BB50042441B /* Lynk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lynk.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B52322CF2F308BB70042441B /* LynkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LynkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B52322D92F308BB70042441B /* LynkUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LynkUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B59A5C562F45B3100065783E /* Subscriptions.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Subscriptions.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -88,6 +93,7 @@
 		B52322B52F308BB50042441B = {
 			isa = PBXGroup;
 			children = (
+				B59A5C562F45B3100065783E /* Subscriptions.storekit */,
 				B52322C02F308BB50042441B /* Lynk */,
 				B52322D22F308BB70042441B /* LynkTests */,
 				B52322DC2F308BB70042441B /* LynkUITests */,
@@ -225,6 +231,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B59A5C572F45B3100065783E /* Subscriptions.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
