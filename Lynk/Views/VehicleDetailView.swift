@@ -28,6 +28,7 @@ struct VehicleDetailView: View {
         case "purple": return .purple
         case "brown": return .brown
         case "pink": return .pink
+        case "gold": return Color(red: 1.0, green: 0.84, blue: 0.0)
         default: return .secondary
         }
     }
@@ -40,7 +41,8 @@ struct VehicleDetailView: View {
                     HStack {
                         Image(systemName: "car.side.fill")
                             .font(.system(size: 40))
-                            .foregroundStyle(getVehicleColor(vehicle.color)) 
+                            .foregroundStyle(getVehicleColor(vehicle.color))
+                            .shadow(color: .black.opacity(0.4), radius: 2, x: 0, y: 1)
                         
                         VStack(alignment: .leading) {
                             Text("\(vehicle.year) \(vehicle.make)")
@@ -227,11 +229,10 @@ struct ServiceRowView: View {
                     .buttonStyle(.borderless)
                     .alert("Pro Feature", isPresented: $showPaywallAlert) {
                         Button("Get Pro Lynk") { showPaywall = true }
-                        Button("Cancel", role: .cancel) { } // 👈 Handled naturally by iOS
+                        Button("Cancel", role: .cancel) { }
                     } message: {
                         Text("Generating professional PDF invoices is a Lynk Pro feature.")
                     }
-                    // 👇 Fixed! Should be a .sheet, not a navigationDestination
                     .sheet(isPresented: $showPaywall) {
                         PaywallView()
                     }
@@ -240,13 +241,34 @@ struct ServiceRowView: View {
             }
         } label: {
             HStack {
-                VStack(alignment: .leading) {
-                    Text(service.title)
-                        .font(.headline)
+                VStack(alignment: .leading, spacing: 4) {
+                Text(service.title)
+                    .font(.headline)
+                
+                HStack {
                     Text(service.date.formatted(date: .abbreviated, time: .omitted))
                         .font(.caption)
                         .secondaryText()
+                    
+                    let daysLeft = Calendar.current.dateComponents([.day], from: Date(), to: service.date).day ?? 0
+                    
+                    if daysLeft > 0 {
+                        Text("\(daysLeft) days left")
+                            .font(.caption2).bold()
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(Color.orange.opacity(0.2))
+                            .foregroundColor(.orange)
+                            .cornerRadius(4)
+                    } else if Calendar.current.isDateInToday(service.date) {
+                        Text("Today")
+                            .font(.caption2).bold()
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(Color.lynkMint.opacity(0.2))
+                            .foregroundColor(.lynkMint)
+                            .cornerRadius(4)
+                    }
                 }
+            }
                 Spacer()
                 Text(service.price, format: .currency(code: "USD"))
                     .bold()

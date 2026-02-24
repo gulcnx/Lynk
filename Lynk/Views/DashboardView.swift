@@ -171,13 +171,13 @@ struct DashboardView: View {
                             .fontWeight(.bold)
                             .secondaryText()
                             .padding(.horizontal)
-                        
+                    
                         if recentServices.isEmpty {
                             Text("No activity yet.")
                                 .secondaryText()
                                 .padding(.horizontal)
                         } else {
-                            ForEach(recentServices.prefix(5)) { service in
+                            ForEach(recentServices.prefix(3)) { service in
                                 if let vehicle = service.vehicle {
                                     NavigationLink(destination: VehicleDetailView(vehicle: vehicle)) {
                                         RecentActivityRow(service: service)

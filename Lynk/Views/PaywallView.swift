@@ -17,7 +17,6 @@ struct PaywallView: View {
                 Spacer(minLength: 40)
                 
                 // --- ICON & HEADER ---
-                // Slightly smaller crown for better balance
                 Image(systemName: "crown.fill")
                     .font(.system(size: 64))
                     .foregroundStyle(LinearGradient.lynkMintGradient)
@@ -95,7 +94,6 @@ struct PaywallView: View {
     }
 }
 
-// Refined FeatureRow with better alignment
 struct FeatureRow: View {
     let icon: String
     let title: String

@@ -14,13 +14,18 @@ struct LynkApp: App {
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
     @StateObject private var store = StoreManager()
     
+    init() {
+        NotificationManager.shared.requestPermission()
+    }
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Client.self,
             Vehicle.self,
             Service.self,
             Expense.self,
-            DamagePoint.self
+            DamagePoint.self,
+            Appointment.self
         ])
 
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
@@ -34,7 +39,7 @@ struct LynkApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Group{
+            Group {
                 if hasSeenOnboarding {
                     MainTabView()
                         .environmentObject(store)

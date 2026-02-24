@@ -33,6 +33,7 @@ class Client {
     var dateCreated: Date = Date()
     
     @Relationship(deleteRule: .cascade) var vehicles: [Vehicle]? = []
+    @Relationship(deleteRule: .cascade) var appointments: [Appointment]? = []
     
     init(name: String, email: String, phoneNumber: String) {
         self.name = name
@@ -50,7 +51,7 @@ class Client {
     }
 }
 
-// MARK: - VEHICLE (New Core Model)
+// MARK: - VEHICLE
 @Model
 class Vehicle {
     var make: String = ""       // e.g. "Porsche"
@@ -133,4 +134,38 @@ class InspectionPhoto {
         self.photoData = photoData
         self.note = note
     }
+}
+
+// MARK: - APPOINTMENT
+@Model
+class Appointment {
+    var title: String = ""
+    var date: Date = Date()
+    var notes: String = ""
+    var isCompleted: Bool = false
+    
+    @Relationship(inverse: \Client.appointments) var client: Client?
+    
+    init(title: String, date: Date, notes: String = "") {
+        self.title = title
+        self.date = date
+        self.notes = notes
+    }
+}
+
+// MARK: CALENDAR MODELS
+struct CalendarEvent: Identifiable {
+    let id = UUID()
+    let originalApptId: PersistentIdentifier?
+    let vehicle: Vehicle?
+    let title: String
+    let date: Date
+    let subtitle: String
+    let isService: Bool
+}
+
+struct DateValue: Identifiable {
+    var id = UUID().uuidString
+    var date: Date
+    var isCurrentMonth: Bool
 }

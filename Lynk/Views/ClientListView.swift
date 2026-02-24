@@ -19,51 +19,59 @@ struct ClientListView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 12) {
-                    if clients.isEmpty {
-                        // Empty State
-                        VStack(spacing: 20) {
-                            Image(systemName: "person.2.slash")
-                                .font(.system(size: 50))
-                                .foregroundStyle(Color.gray)
-                            Text("No Clients Yet")
-                                .font(.headline)
-                                .primaryText()
-                            Text("Add your first client to get started.")
-                                .font(.caption)
-                                .secondaryText()
-                        }
-                        .padding(.top, 50)
-                    } else {
+            Group {
+                if clients.isEmpty {
+                    VStack(spacing: 20) {
+                        Image(systemName: "person.2.slash")
+                            .font(.system(size: 50))
+                            .foregroundStyle(Color.gray)
+                        Text("No Clients Yet")
+                            .font(.headline)
+                            .primaryText()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List {
                         ForEach(clients) { client in
-                            NavigationLink(destination: ClientDetailView(client: client)) {
+                            ZStack {
+                                NavigationLink(destination: ClientDetailView(client: client)) {
+                                    EmptyView()
+                                }
+                                .opacity(0)
+                                
                                 ClientCard(client: client)
                             }
+                            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
                         }
+                        .onDelete(perform: deleteClients)
                     }
+                    .listStyle(.plain)
+                    .padding(.bottom, 80)
                 }
-                .padding()
             }
             .premiumBackground()
             .navigationTitle("Clients")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: {
-                        if !store.hasProAccess && clients.count >= 5 {
-                            showPaywallAlert = true // Blocked!
-                        } else {
-                            showAddSheet = true // Allowed!
-                        }
-                    }) {
-                        Image(systemName: "plus")
-                            .font(.headline)
-                            .foregroundStyle(Color.lynkMint)
-                            .padding(8)
-                            .background(Color.lynkCardDark)
-                            .clipShape(Circle())
+            
+            // 1. THE FLOATING ACTION BUTTON (FAB)
+            .overlay(alignment: .bottomTrailing) {
+                Button(action: {
+                    if !store.hasProAccess && clients.count >= 5 {
+                        showPaywallAlert = true
+                    } else {
+                        showAddSheet = true
                     }
+                }) {
+                    Image(systemName: "plus")
+                        .font(.title2.weight(.bold))
+                        .foregroundColor(.black)
+                        .frame(width: 60, height: 60)
+                        .background(Color.lynkMint)
+                        .clipShape(Circle())
+                        .shadow(color: Color.lynkMint.opacity(0.4), radius: 10, x: 0, y: 5)
                 }
+                .padding()
             }
             .sheet(isPresented: $showAddSheet) {
                 AddClientView()
@@ -79,9 +87,16 @@ struct ClientListView: View {
             }
         }
     }
+    
+    private func deleteClients(offsets: IndexSet) {
+        for index in offsets {
+            let client = clients[index]
+            modelContext.delete(client)
+        }
+    }
 }
 
-// --- NEW CLIENT CARD ---
+// 2. CLIENT CARD
 struct ClientCard: View {
     let client: Client
     
@@ -89,23 +104,44 @@ struct ClientCard: View {
         HStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(Color.lynkMint)
+                    .fill(Color.lynkMint.opacity(0.15))
                     .frame(width: 50, height: 50)
-                    .shadow(color: Color.lynkMint.opacity(0.3), radius: 5)
                 
                 Text(client.name.prefix(1).uppercased())
-                    .font(.title3)
-                    .bold()
-                    .foregroundStyle(.black)
+                    .font(.title3.bold())
+                    .foregroundStyle(Color.lynkMint)
             }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(client.name)
                     .font(.headline)
                     .primaryText()
-                Text(client.email)
-                    .font(.caption)
-                    .secondaryText()
+                
+                // Phone Label
+                if !client.phoneNumber.isEmpty {
+                    HStack{
+                        Image(systemName: "phone.fill")
+                            .font(.caption)
+                            .foregroundStyle(Color.lynkMint)
+                        
+                        Text(client.phoneNumber)
+                            .font(.caption)
+                            .secondaryText()
+                    }
+                }
+                
+                // Email Label
+                if !client.email.isEmpty {
+                    HStack{
+                        Image(systemName: "envelope.fill")
+                            .font(.caption)
+                            .foregroundStyle(Color.blue)
+                        
+                        Text(client.email)
+                            .font(.caption)
+                            .secondaryText()
+                    }
+                }
             }
             
             Spacer()

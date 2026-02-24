@@ -101,6 +101,23 @@ struct AddServiceView: View {
         // Link to Vehicle
         newService.vehicle = vehicle
         
+        // 1. Saves the service to your SwiftData database
         modelContext.insert(newService)
+        
+        // 2. ALARM 1: Exactly 24 hours before
+        NotificationManager.shared.scheduleEarlyReminder(
+            title: "Tomorrow: \(vehicle.make) \(vehicle.model)",
+            body: "Scheduled job: \(title)",
+            targetDate: date,
+            hoursBefore: 24
+        )
+        
+        // 3. ALARM 2: Exactly 2 hours before
+        NotificationManager.shared.scheduleEarlyReminder(
+            title: "Arriving Soon: \(vehicle.make) \(vehicle.model)",
+            body: "Detailing job starts in 2 hours.",
+            targetDate: date,
+            hoursBefore: 2
+        )
     }
 }
