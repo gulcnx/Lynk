@@ -76,6 +76,18 @@ struct PaywallView: View {
                     .font(.footnote)
                     .fontWeight(.semibold)
                     .foregroundStyle(.secondary)
+                    
+                    HStack(spacing: 12) {
+                        Link("Terms of Use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+                        
+                        Text("•")
+                            .foregroundColor(.secondary)
+                        
+                        Link("Privacy Policy", destination: URL(string: "https://gulcnx.github.io/lynk-privacy/")!)
+                    }
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 10)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 30)

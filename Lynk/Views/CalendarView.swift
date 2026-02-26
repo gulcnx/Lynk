@@ -45,7 +45,7 @@ struct CalendarView: View {
                     HStack {
                         Text(currentMonth.formatted(.dateTime.month(.wide).year()))
                             .font(.title2.bold())
-                            .foregroundColor(.primary) // ADAPTS: Black in light mode, White in dark mode
+                            .foregroundColor(.primary)
                         Spacer()
                         
                         HStack(spacing: 20) {
@@ -76,7 +76,6 @@ struct CalendarView: View {
                     }
                 }
                 .padding()
-                // ADAPTS: Automatically shifts background color for light/dark mode
                 .background(Color(UIColor.secondarySystemGroupedBackground))
                 .cornerRadius(16)
                 .padding()
@@ -92,12 +91,18 @@ struct CalendarView: View {
                     } else {
                         ForEach(filteredEvents) { event in
                             if let vehicle = event.vehicle {
+                              
                                 NavigationLink(destination: VehicleDetailView(vehicle: vehicle)) {
                                     EventRow(event: event)
                                 }
                                 .listRowBackground(Color.clear)
                             } else {
-                                EventRow(event: event)
+                                if let apptId = event.originalApptId,
+                                   let appt = allAppointments.first(where: { $0.persistentModelID == apptId }) {
+                                    
+                                    NavigationLink(destination: AppointmentDetailView(appointment: appt)) {
+                                        EventRow(event: event)
+                                    }
                                     .listRowBackground(Color.clear)
                                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                         Button(role: .destructive) {
@@ -106,6 +111,7 @@ struct CalendarView: View {
                                             Label("Delete", systemImage: "trash")
                                         }
                                     }
+                                }
                             }
                         }
                     }

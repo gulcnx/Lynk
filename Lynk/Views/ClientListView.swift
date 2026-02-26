@@ -104,12 +104,12 @@ struct ClientCard: View {
         HStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(Color.lynkMint.opacity(0.15))
+                    .fill(Color.lynkMint)
                     .frame(width: 50, height: 50)
                 
                 Text(client.name.prefix(1).uppercased())
-                    .font(.title3.bold())
-                    .foregroundStyle(Color.lynkMint)
+                    .font(.title2.bold())
+                    .foregroundStyle(Color.lynkDarkBlue)
             }
             
             VStack(alignment: .leading, spacing: 6) {
