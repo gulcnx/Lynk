@@ -13,84 +13,90 @@ struct PaywallView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                Spacer(minLength: 40)
-                
-                // --- ICON & HEADER ---
-                Image(systemName: "crown.fill")
-                    .font(.system(size: 64))
-                    .foregroundStyle(LinearGradient.lynkMintGradient)
-                    .shadow(color: Color.lynkMint.opacity(0.4), radius: 12, y: 8)
-                    .padding(.bottom, 24)
-                
-                VStack(spacing: 12) {
-                    Text("Lynk Pro")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .primaryText()
+            // 1. WRAPPED IN A SCROLLVIEW
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    Spacer(minLength: 40)
                     
-                    Text("Elevate your detailing business.")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.secondary.opacity(0.8))
-                }
-                .padding(.bottom, 40)
-                
-                // --- FEATURE LIST ---
-                VStack(alignment: .leading, spacing: 28) {
-                    FeatureRow(icon: "person.3.fill", title: "Unlimited Clients", subtitle: "Remove the 5-client limit")
-                    FeatureRow(icon: "doc.plaintext.fill", title: "Custom Invoices", subtitle: "Generate professional PDFs")
-                    FeatureRow(icon: "chart.pie.fill", title: "Advanced Analytics", subtitle: "Unlock all dashboard features")
-                    FeatureRow(icon: "heart.fill", title: "Support Indie", subtitle: "Support the creator of Lynk 🤍")
-                }
-                .padding(.horizontal, 30)
-                
-                Spacer()
-                
-                // --- PURCHASE SECTION ---
-                VStack(spacing: 16) {
-                    Button(action: {
-                        Task {
-                            await store.purchase()
-                            if store.hasProAccess {
-                                dismiss()
+                    // --- ICON & HEADER ---
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 64))
+                        .foregroundStyle(LinearGradient.lynkMintGradient)
+                        .shadow(color: Color.lynkMint.opacity(0.4), radius: 12, y: 8)
+                        .padding(.bottom, 24)
+                    
+                    VStack(spacing: 12) {
+                        Text("Lynk Pro")
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .primaryText()
+                        
+                        Text("Elevate your detailing business.")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.secondary.opacity(0.8))
+                    }
+                    .padding(.bottom, 40)
+                    
+                    // --- FEATURE LIST ---
+                    VStack(alignment: .leading, spacing: 28) {
+                        FeatureRow(icon: "person.3.fill", title: "Unlimited Clients", subtitle: "Remove the 5-client limit")
+                        FeatureRow(icon: "doc.plaintext.fill", title: "Custom Invoices", subtitle: "Generate professional PDFs")
+                        FeatureRow(icon: "chart.pie.fill", title: "Advanced Analytics", subtitle: "Unlock all dashboard features")
+                        FeatureRow(icon: "heart.fill", title: "Support Indie", subtitle: "Support the creator of Lynk 🤍")
+                    }
+                    .padding(.horizontal, 30)
+                    
+                    // 2. UPDATED SPACER
+                    Spacer(minLength: 50)
+                    
+                    // --- PURCHASE SECTION ---
+                    VStack(spacing: 16) {
+                        Button(action: {
+                            Task {
+                                await store.purchase()
+                                if store.hasProAccess {
+                                    dismiss()
+                                }
+                            }
+                        }) {
+                            Text("Upgrade for $9.99 / month")
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 18)
+                                .background(LinearGradient.lynkMintGradient)
+                                .foregroundStyle(.black)
+                                .cornerRadius(16)
+                                .shadow(color: Color.lynkMint.opacity(0.3), radius: 10, y: 5)
+                        }
+                        
+                        Button("Restore Purchases") {
+                            Task {
+                                await store.updateSubscriptionStatus()
+                                if store.hasProAccess { dismiss() }
                             }
                         }
-                    }) {
-                        Text("Upgrade for $9.99 / month")
-                            .font(.headline)
-                            .fontWeight(.bold)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
-                            .background(LinearGradient.lynkMintGradient)
-                            .foregroundStyle(.black)
-                            .cornerRadius(16)
-                            .shadow(color: Color.lynkMint.opacity(0.3), radius: 10, y: 5)
-                    }
-                    
-                    Button("Restore Purchases") {
-                        Task {
-                            await store.updateSubscriptionStatus()
-                            if store.hasProAccess { dismiss() }
+                        .font(.footnote)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                        
+                        // 3.LEGAL LINKS 
+                        HStack(spacing: 12) {
+                            Link("Terms of Use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+                            
+                            Text("•")
+                            
+                            Link("Privacy Policy", destination: URL(string: "https://gulcnx.github.io/lynk-privacy/")!)
                         }
+                        .font(.caption2)
+                        .tint(.secondary)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 10)
                     }
-                    .font(.footnote)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                    
-                    HStack(spacing: 12) {
-                        Link("Terms of Use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
-                        
-                        Text("•")
-                            .foregroundColor(.secondary)
-                        
-                        Link("Privacy Policy", destination: URL(string: "https://gulcnx.github.io/lynk-privacy/")!)
-                    }
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                    .padding(.top, 10)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 60)
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 30)
+                .padding(.top, 20)
             }
             .premiumBackground()
             .toolbar {
