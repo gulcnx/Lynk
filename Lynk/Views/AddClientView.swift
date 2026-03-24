@@ -5,6 +5,7 @@
 //  Created by gülçin çetin on 2.02.2026.
 //
 
+import StoreKit
 import SwiftUI
 import SwiftData
 
@@ -12,7 +13,9 @@ struct AddClientView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel = AddClientViewModel()
-
+    @AppStorage("clientsAddedCount") private var clientsAddedCount = 0
+    @Environment(\.requestReview) var requestReview
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -58,6 +61,13 @@ struct AddClientView: View {
                     // Big Custom Save Button
                     Button(action: {
                         viewModel.saveClient(context: modelContext)
+                        
+                        clientsAddedCount += 1
+                        
+                        if clientsAddedCount == 3 || clientsAddedCount == 10 {
+                            requestReview()
+                        }
+                        
                         dismiss()
                     }) {
                         Text("Save Client")

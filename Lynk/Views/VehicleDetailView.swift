@@ -5,6 +5,7 @@
 //  Created by gülçin çetin on 9.02.2026.
 //
 
+import StoreKit
 import SwiftUI
 import SwiftData
 
@@ -126,6 +127,10 @@ struct ServiceRowView: View {
     @State private var showPaywallAlert = false
     @State private var showPaywall = false
     
+    @Environment(\.requestReview) var requestReview
+    @AppStorage("servicesMarkedPaidCount") private var servicesMarkedPaidCount = 0
+    @AppStorage("invoicesGeneratedCount") private var invoicesGeneratedCount = 0
+    
     var body: some View {
         DisclosureGroup {
             VStack(alignment: .leading, spacing: 10) {
@@ -197,6 +202,13 @@ struct ServiceRowView: View {
                     // MARK AS PAID BUTTON
                     Button(action: {
                         service.isPaid.toggle()
+                        
+                        if service.isPaid {
+                            servicesMarkedPaidCount += 1
+                            if servicesMarkedPaidCount == 3 || servicesMarkedPaidCount == 10 {
+                                requestReview()
+                            }
+                        }
                     }) {
                         Label(
                             service.isPaid ? "Paid" : "Mark Paid",
@@ -214,6 +226,11 @@ struct ServiceRowView: View {
                             // Pro user - generate the PDF
                             if let url = InvoiceGenerator.generateInvoice(for: service) {
                                 sharePDF(url: url)
+                                
+                                invoicesGeneratedCount += 1
+                                if invoicesGeneratedCount == 3 || invoicesGeneratedCount == 10 {
+                                    requestReview()
+                                }
                             }
                         } else {
                             // Free user - show paywall
