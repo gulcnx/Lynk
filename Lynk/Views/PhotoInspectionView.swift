@@ -15,6 +15,7 @@ struct PhotoInspectionView: View {
     
     @State private var selectedItem: PhotosPickerItem?
     @State private var showCamera = false
+    @State private var capturedImage: UIImage?
     
     var body: some View {
         ScrollView {
@@ -39,11 +40,9 @@ struct PhotoInspectionView: View {
 
                 // --- ACTION BUTTONS ---
                 HStack(spacing: 20) {
-                    // 1. Take Photo (Real Camera)
+                    // 1. Open Real Camera
                     Button(action: {
-                        // In a real app, use UIViewControllerRepresentable for Camera
-                        // For MVP, we'll use the Photo Picker
-                        print("Camera tapped")
+                        showCamera = true
                     }) {
                         Label("Take Photo", systemImage: "camera")
                             .frame(maxWidth: .infinity)
@@ -51,6 +50,10 @@ struct PhotoInspectionView: View {
                             .background(Color.blue)
                             .foregroundStyle(.white)
                             .cornerRadius(12)
+                    }
+                    .sheet(isPresented: $showCamera) {
+                        ImagePicker(image: $capturedImage, sourceType: .camera)
+                            .ignoresSafeArea()
                     }
                     
                     // 2. Upload from Gallery
@@ -109,6 +112,38 @@ struct PhotoInspectionView: View {
                     selectedItem = nil // Reset
                 }
             }
+        }
+    }
+}
+
+// - MARK: Native Camera Bridge ❗️ -
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var image: UIImage?
+    var sourceType: UIImagePickerController.SourceType
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = sourceType
+        picker.delegate = context.coordinator
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+        init(_ parent: ImagePicker) { self.parent = parent }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let uiImage = info[.originalImage] as? UIImage {
+                parent.image = uiImage
+            }
+            picker.dismiss(animated: true)
         }
     }
 }

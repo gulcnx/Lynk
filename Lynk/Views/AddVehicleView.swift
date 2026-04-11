@@ -211,3 +211,43 @@ struct AddVehicleView: View {
         modelContext.insert(newVehicle)
     }
 }
+
+// MARK: THE SCANNER BRIDGE ❗️-
+
+struct DataScannerView: UIViewControllerRepresentable {
+    @Binding var scannedCode: String
+    @Environment(\.dismiss) var dismiss
+    
+    func makeUIViewController(context: Context) -> DataScannerViewController {
+        let controller = DataScannerViewController(
+            recognizedDataTypes: [.text()], // We want text for VIN/Plates
+            qualityLevel: .balanced,
+            isHighlightingEnabled: true
+        )
+        controller.delegate = context.coordinator
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: DataScannerViewController, context: Context) {
+        // Start scanning as soon as the view appears
+        try? uiViewController.startScanning()
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, DataScannerViewControllerDelegate {
+        var parent: DataScannerView
+        init(_ parent: DataScannerView) { self.parent = parent }
+        
+        func dataScanner(_ dataScanner: DataScannerViewController, didTapOn item: RecognizedItem) {
+            switch item {
+            case .text(let text):
+                parent.scannedCode = text.transcript
+                parent.dismiss() // Auto-close when a code is tapped
+            default: break
+            }
+        }
+    }
+}
