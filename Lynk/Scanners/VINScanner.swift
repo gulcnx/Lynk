@@ -9,27 +9,24 @@ import SwiftUI
 import VisionKit
 
 struct VINScanner: UIViewControllerRepresentable {
-    // This binding sends the scanned text back to your form
     @Binding var scannedCode: String
     @Environment(\.dismiss) var dismiss
     
     func makeUIViewController(context: Context) -> DataScannerViewController {
-        // We only look for Text (not QR codes)
         let scanner = DataScannerViewController(
             recognizedDataTypes: [.text()],
             qualityLevel: .balanced,
             isHighlightingEnabled: true
         )
         scanner.delegate = context.coordinator
-        
-        // Start the scanner immediately
-        try? scanner.startScanning()
-        
         return scanner
     }
     
     func updateUIViewController(_ uiViewController: DataScannerViewController, context: Context) {
-        // No updates needed
+        // Safely start scanning ONLY if it's on screen and not already running
+        if !uiViewController.isScanning {
+            try? uiViewController.startScanning()
+        }
     }
     
     func makeCoordinator() -> Coordinator {
@@ -46,13 +43,9 @@ struct VINScanner: UIViewControllerRepresentable {
         func dataScanner(_ dataScanner: DataScannerViewController, didTapOn item: RecognizedItem) {
             switch item {
             case .text(let text):
-                // Clean the text (VINs are 17 chars, uppercase, no O/I/Q usually)
                 let cleanText = text.transcript.uppercased().filter { $0.isLetter || $0.isNumber }
-                
-                // Simple validation: VINs are usually 17 chars
-                if cleanText.count >= 11 { // Allow shorter ones just in case
+                if cleanText.count >= 11 {
                     parent.scannedCode = cleanText
-                    // Close the scanner automatically
                     parent.dismiss()
                 }
             default:
