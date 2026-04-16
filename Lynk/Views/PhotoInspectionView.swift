@@ -103,6 +103,7 @@ struct PhotoInspectionView: View {
             }
         }
         .navigationTitle("Inspection Photos")
+        //Handles the photo that selected from gallery.
         .onChange(of: selectedItem) { oldValue, newValue in
             Task {
                 if let data = try? await newValue?.loadTransferable(type: Data.self) {
@@ -111,6 +112,15 @@ struct PhotoInspectionView: View {
                     modelContext.insert(newPhoto)
                     selectedItem = nil // Reset
                 }
+            }
+        }
+        // Handle the photo captured directly from the camera
+        .onChange(of: capturedImage) { oldValue, newValue in
+            if let uiImage = newValue, let data = uiImage.jpegData(compressionQuality: 0.8) {
+                let newPhoto = InspectionPhoto(photoData: data, note: "Camera Photo")
+                newPhoto.service = service
+                modelContext.insert(newPhoto)
+                capturedImage = nil // Reset so they can take another photo
             }
         }
     }
