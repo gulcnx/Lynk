@@ -1,0 +1,140 @@
+//
+//  PaywallView.swift
+//  Lynk
+//
+//  Created by gülçin çetin on 18.02.2026.
+//
+
+import SwiftUI
+
+struct PaywallView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var store: StoreManager
+
+    var body: some View {
+        NavigationStack {
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    Spacer(minLength: 15)
+                    
+                    // --- ICON & HEADER ---
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 64))
+                        .foregroundStyle(LinearGradient.lynkMintGradient)
+                        .shadow(color: Color.lynkMint.opacity(0.4), radius: 12, y: 8)
+                        .padding(.bottom, 16)
+                    
+                    VStack(spacing: 8) {
+                        Text("Lynk Pro")
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .primaryText()
+                        
+                        Text("Elevate your detailing business.")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.secondary.opacity(0.8))
+                    }
+                    .padding(.bottom, 24)
+                    
+                    // --- FEATURE LIST ---
+                    VStack(alignment: .leading, spacing: 17) {
+                        FeatureRow(icon: "person.3.fill", title: "Unlimited Clients", subtitle: "Remove the 5-client limit")
+                        FeatureRow(icon: "doc.plaintext.fill", title: "Custom Invoices", subtitle: "Generate professional PDFs")
+                        FeatureRow(icon: "chart.pie.fill", title: "Advanced Analytics", subtitle: "Unlock all dashboard features")
+                        FeatureRow(icon: "heart.fill", title: "Support Indie", subtitle: "Support the creator of Lynk 🤍")
+                    }
+                    .padding(.horizontal, 30)
+                    
+                    Spacer(minLength: 30)
+                    
+                    // --- PURCHASE SECTION ---
+                    VStack(spacing: 12) {
+                        Button(action: {
+                            Task {
+                                await store.purchase()
+                                if store.hasProAccess {
+                                    dismiss()
+                                }
+                            }
+                        }) {
+                            Text("Upgrade for $9.99 / month")
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(LinearGradient.lynkMintGradient)
+                                .foregroundStyle(.black)
+                                .cornerRadius(16)
+                                .shadow(color: Color.lynkMint.opacity(0.3), radius: 10, y: 5)
+                        }
+                        
+                        // ALL LINKS ON ONE COMPACT LINE
+                        HStack(spacing: 8) {
+                            Button("Restore") {
+                                Task {
+                                    await store.updateSubscriptionStatus()
+                                    if store.hasProAccess { dismiss() }
+                                }
+                            }
+                            
+                            Text("•")
+                            
+                            Link("Terms", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+                            
+                            Text("•")
+                            
+                            Link("Privacy", destination: URL(string: "https://gulcnx.github.io/lynk-privacy/")!)
+                        }
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .tint(.secondary)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 4)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 80) // Massive bumper so it scrolls cleanly above the edge
+                }
+                .padding(.top, 10)
+            }
+            .premiumBackground()
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.gray.opacity(0.5))
+                            .font(.title2)
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct FeatureRow: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    
+    var body: some View {
+        HStack(spacing: 18) {
+            ZStack {
+                Circle()
+                    .fill(Color.lynkMint.opacity(0.12))
+                    .frame(width: 48, height: 48)
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(Color.lynkMint)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+                    .primaryText()
+                Text(subtitle)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}

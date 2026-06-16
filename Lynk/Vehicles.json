@@ -1,0 +1,46 @@
+{
+  "makes": [
+    "Acura", "Alfa Romeo", "Aston Martin", "Audi", "Bentley", "BMW", "Bugatti", "Cadillac", "Chevrolet", "Chrysler", "Dodge", "Ferrari", "Ford", "GMC", "Honda", "Hyundai", "Infiniti", "Jaguar", "Jeep", "Kia", "Lamborghini", "Land Rover", "Lexus", "Lincoln", "Lucid", "Maserati", "Mazda", "McLaren", "Mercedes-Benz", "MINI", "Nissan", "Pagani", "Polestar", "Porsche", "Ram", "Rivian", "Rolls-Royce", "Subaru", "Tesla", "Toyota", "Volkswagen", "Volvo", "Other..."
+  ],
+  "models": {
+    "Acura": ["ILX", "Integra", "MDX", "NSX", "RDX", "TLX", "Other..."],
+    "Alfa Romeo": ["Giulia", "Stelvio", "Tonale", "Other..."],
+    "Aston Martin": ["DB11", "DB12", "DBS", "DBX", "Vantage", "Other..."],
+    "Audi": ["A3", "A4", "A5", "A6", "A7", "A8", "e-tron", "Q3", "Q4", "Q5", "Q7", "Q8", "R8", "RS3", "RS5", "RS6", "RS7", "Other..."],
+    "Bentley": ["Bentayga", "Continental GT", "Flying Spur", "Other..."],
+    "BMW": ["2 Series", "3 Series", "4 Series", "5 Series", "7 Series", "8 Series", "i4", "i7", "iX", "M2", "M3", "M4", "M5", "M8", "X1", "X3", "X4", "X5", "X6", "X7", "XM", "Z4", "Other..."],
+    "Cadillac": ["CT4", "CT5", "Escalade", "Lyriq", "XT4", "XT5", "XT6", "Other..."],
+    "Chevrolet": ["Blazer", "Camaro", "Colorado", "Corvette", "Equinox", "Silverado", "Suburban", "Tahoe", "Other..."],
+    "Dodge": ["Challenger", "Charger", "Durango", "Hornet", "Other..."],
+    "Ferrari": ["296 GTB", "488", "812 Superfast", "F8 Tributo", "Portofino", "Purosangue", "Roma", "SF90 Stradale", "Other..."],
+    "Ford": ["Bronco", "Edge", "Escape", "Expedition", "Explorer", "F-150", "Mustang", "Mustang Mach-E", "Ranger", "Other..."],
+    "GMC": ["Acadia", "Canyon", "Hummer EV", "Sierra", "Terrain", "Yukon", "Other..."],
+    "Honda": ["Accord", "Civic", "CR-V", "HR-V", "Odyssey", "Passport", "Pilot", "Ridgeline", "Other..."],
+    "Hyundai": ["Elantra", "Ioniq 5", "Ioniq 6", "Kona", "Palisade", "Santa Fe", "Sonata", "Tucson", "Other..."],
+    "Jaguar": ["E-PACE", "F-PACE", "F-TYPE", "I-PACE", "XF", "Other..."],
+    "Jeep": ["Cherokee", "Compass", "Gladiator", "Grand Cherokee", "Wagoneer", "Wrangler", "Other..."],
+    "Kia": ["EV6", "EV9", "Forte", "K5", "Niro", "Sorento", "Soul", "Sportage", "Telluride", "Other..."],
+    "Lamborghini": ["Aventador", "Huracan", "Revuelto", "Urus", "Other..."],
+    "Land Rover": ["Defender", "Discovery", "Range Rover", "Range Rover Evoque", "Range Rover Sport", "Range Rover Velar", "Other..."],
+    "Lexus": ["ES", "GX", "IS", "LC", "LS", "LX", "NX", "RC", "RX", "RZ", "TX", "Other..."],
+    "Lucid": ["Air", "Other..."],
+    "Maserati": ["Ghibli", "Grecale", "Levante", "MC20", "Quattroporte", "Other..."],
+    "Mazda": ["CX-30", "CX-5", "CX-50", "CX-90", "Mazda3", "MX-5 Miata", "Other..."],
+    "McLaren": ["570S", "720S", "750S", "Artura", "GT", "Senna", "Other..."],
+    "Mercedes-Benz": ["A-Class", "C-Class", "CLA", "CLE", "E-Class", "EQB", "EQE", "EQS", "G-Class", "GLA", "GLB", "GLC", "GLE", "GLS", "S-Class", "SL", "AMG GT", "Other..."],
+    "Nissan": ["Altima", "Ariya", "Frontier", "GT-R", "Pathfinder", "Rogue", "Sentra", "Titan", "Z", "Other..."],
+    "Polestar": ["Polestar 2", "Polestar 3", "Other..."],
+    "Porsche": ["718 Boxster", "718 Cayman", "911", "Cayenne", "Macan", "Panamera", "Taycan", "Other..."],
+    "Ram": ["1500", "2500", "3500", "Other..."],
+    "Rivian": ["R1S", "R1T", "Other..."],
+    "Rolls-Royce": ["Cullinan", "Ghost", "Phantom", "Spectre", "Other..."],
+    "Subaru": ["Ascent", "BRZ", "Crosstrek", "Forester", "Impreza", "Outback", "WRX", "Other..."],
+    "Tesla": ["Model 3", "Model S", "Model X", "Model Y", "Cybertruck", "Other..."],
+    "Toyota": ["4Runner", "bZ4X", "Camry", "Corolla", "Crown", "Highlander", "Prius", "RAV4", "Sequoia", "Sienna", "Supra", "Tacoma", "Tundra", "Other..."],
+    "Volkswagen": ["Arteon", "Atlas", "Golf GTI", "Golf R", "ID.4", "Jetta", "Taos", "Tiguan", "Other..."],
+    "Volvo": ["C40", "EX30", "EX90", "S60", "S90", "XC40", "XC60", "XC90", "Other..."]
+  },
+  "colors": [
+    "Black", "White", "Silver", "Gray", "Red", "Blue", "Green", "Yellow", "Orange", "Brown", "Gold", "Purple", "Pink", "Custom..."
+  ]
+}

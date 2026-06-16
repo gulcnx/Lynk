@@ -10,9 +10,8 @@ import SwiftData
 
 struct ClientDetailView: View {
     @Environment(\.modelContext) private var modelContext
-    
-    @State var viewModel: ClientDetailViewModel    
-    @State private var showAddProjectSheet = false
+    @State var viewModel: ClientDetailViewModel
+    @State private var showAddVehicleSheet = false
     @State private var showEditSheet = false
     
     init(client: Client) {
@@ -21,139 +20,177 @@ struct ClientDetailView: View {
 
     var body: some View {
         List {
-            Section {
-                HStack(spacing: 20) {
+            // --- TOP CARD: REVENUE & CONTACT ---
+            VStack(spacing: 20) {
+                // Revenue Summary
+                VStack(spacing: 8) {
+                    Text("LIFETIME VALUE")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .secondaryText()
+                        .tracking(1)
+                    
+                    Text(viewModel.formattedEarnings)
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .primaryText()
+                }
+                
+                Divider().background(Color.gray.opacity(0.3))
+                
+                // Action Buttons
+                HStack(spacing: 15) {
                     Button(action: {
-                        let cleanPhone = viewModel.client.phoneNumber.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
-                        
-                        if let phoneUrl = URL(string: "tel://\(cleanPhone)"), UIApplication.shared.canOpenURL(phoneUrl) {
-                            UIApplication.shared.open(phoneUrl)
+                        let cleanPhone = viewModel.client.phoneNumber.filter("0123456789".contains)
+                        if let url = URL(string: "tel://\(cleanPhone)"), UIApplication.shared.canOpenURL(url) {
+                            UIApplication.shared.open(url)
                         }
                     }) {
-                        Label("Call", systemImage: "phone.fill")
-                            .frame(maxWidth: .infinity)
+                        HStack {
+                            Image(systemName: "phone.fill")
+                            Text("Call")
+                        }
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color.lynkMint.opacity(0.1))
+                        .foregroundStyle(Color.lynkMint)
+                        .cornerRadius(10)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.borderless)
                     
                     Button(action: {
-                        let emailUrl = URL(string: "mailto:\(viewModel.client.email)")!
-                        if UIApplication.shared.canOpenURL(emailUrl) {
-                            UIApplication.shared.open(emailUrl)
+                        if let url = URL(string: "mailto:\(viewModel.client.email)") {
+                            UIApplication.shared.open(url)
                         }
                     }) {
-                        Label("Email", systemImage: "envelope.fill")
-                            .frame(maxWidth: .infinity)
+                        HStack {
+                            Image(systemName: "envelope.fill")
+                            Text("Email")
+                        }
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color.lynkMint.opacity(0.1))
+                        .foregroundStyle(Color.lynkMint)
+                        .cornerRadius(10)
                     }
-                    .buttonStyle(.bordered)
-                }
-                .padding(.vertical, 5)
-            }
-            .listRowBackground(Color.clear) 
-            
-            Section {
-                VStack(alignment: .leading) {
-                    Text("Total Earnings")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(viewModel.formattedEarnings)
-                        .font(.largeTitle)
-                        .bold()
-                        .foregroundStyle(.green)
+                    .buttonStyle(.borderless)
                 }
             }
+            .padding()
+            .luxuryCardStyle()
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 20, trailing: 16))
             
-            Section(header: Text("Projects")) {
-                if let projects = viewModel.client.projects, !projects.isEmpty {
-                    ForEach(projects) { project in
-                        NavigationLink(destination: ProjectDetailView(project: project)){
-                            VStack(alignment: .leading) {
-                                Text(project.title)
-                                    .font(.headline)
-                                HStack {
-                                    Text("Due: \(project.dueDate.formatted(date: .numeric, time: .omitted))")
-                                    Spacer()
-                                    Button(action: {
-                                            viewModel.togglePaymentStatus(for: project)
-                                        }) {
-                                            Text(project.isPaid ? "Paid" : "Pending")
-                                                .bold()
-                                                .foregroundStyle(project.isPaid ? .green : .red)
-                                                .padding(.horizontal, 8)
-                                                .padding(.vertical, 4)
-                                                .background(project.isPaid ? Color.green.opacity(0.1) : Color.red.opacity(0.1))
-                                                .cornerRadius(8)
-                                        }
-                                        .buttonStyle(.plain)
-                                }
-                                .font(.caption)
-                                
-                                Button(action: {
-                                    if let url = InvoiceGenerator.generateInvoice(for: project) {
-                                        // Share Sheet Logic
-                                        let activityVC = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-                                        
-                                        // Get the top window scene to present the share sheet
-                                        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                                           let window = scene.windows.first,
-                                           let rootVC = window.rootViewController {
-                                            
-                                            // iPad support requirement
-                                            activityVC.popoverPresentationController?.sourceView = window
-                                            activityVC.popoverPresentationController?.sourceRect = CGRect(x: window.bounds.midX, y: window.bounds.midY, width: 0, height: 0)
-                                            
-                                            rootVC.present(activityVC, animated: true)
-                                        }
-                                    }
-                                }) {
-                                    Label("Send Invoice PDF", systemImage: "square.and.arrow.up")
-                                        .font(.caption)
-                                }
-                                .padding(.top, 5)
-                            }
+            // --- THE GARAGE ---
+            Text("CLIENT'S GARAGE")
+                .font(.caption)
+                .fontWeight(.bold)
+                .secondaryText()
+                .padding(.horizontal, 4)
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            
+            if let vehicles = viewModel.client.vehicles, !vehicles.isEmpty {
+                ForEach(vehicles) { vehicle in
+                    ZStack {
+                        NavigationLink(destination: VehicleDetailView(vehicle: vehicle)) {
+                            EmptyView()
+                        }
+                        .opacity(0)
+                        
+                        ClientVehicleCard(vehicle: vehicle)
+                    }
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 8, trailing: 16))
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            viewModel.deleteVehicle(vehicle: vehicle, context: modelContext)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
                         }
                     }
-                    .onDelete { indexSet in
-                        for index in indexSet {
-                            if let projects = viewModel.client.projects {
-                                let projectToDelete = projects[index]
-                                viewModel.deleteProject(project: projectToDelete, context: modelContext)
-                            }
-                        }
-                    }
-                } else {
-                    ContentUnavailableView {
-                        Label("No Projects", systemImage: "clipboard")
-                    } description: {
-                        Text("Start a new job for this client to track hours and income.")
-                    } actions: {
-                        Button("Create First Project") {
-                            showAddProjectSheet = true
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                    .padding(.vertical, 40)
                 }
+            } else {
+                ContentUnavailableView {
+                    Label {
+                        Text("No Vehicles")
+                            .primaryText()
+                    } icon: {
+                        ZStack {
+                            Image(systemName: "car.fill")
+                            Image(systemName: "line.diagonal")
+                                .font(.system(size: 55, weight: .bold))
+                        }
+                        .foregroundStyle(Color.lynkMint)
+                        .font(.system(size: 45))
+                    }
+                } description: {
+                    Text("Add a vehicle to start tracking services.")
+                        .secondaryText()
+                } actions: {
+                    Button("Add Vehicle") { showAddVehicleSheet = true }
+                        .foregroundStyle(Color.lynkMint.opacity(0.7))
+                }
+                .listRowBackground(Color.clear)
             }
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .premiumBackground()
         .navigationTitle(viewModel.client.name)
         .toolbar {
-            ToolbarItem{
-                Button("Add Project") {
-                    showAddProjectSheet = true
-                }
-            }
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Edit") {
-                    showEditSheet = true
-                }
+                Button("Edit") { showEditSheet = true }
+                    .foregroundStyle(Color.lynkMint)
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button("Add Vehicle") { showAddVehicleSheet = true }
+                    .foregroundStyle(Color.lynkMint)
             }
         }
-        .sheet(isPresented: $showAddProjectSheet) {
-            AddProjectView(client: viewModel.client)
-                .presentationDetents([.medium])
+        .sheet(isPresented: $showAddVehicleSheet) {
+            AddVehicleView(client: viewModel.client)
         }
         .sheet(isPresented: $showEditSheet) {
             EditClientView(client: viewModel.client)
         }
+    }
+}
+
+// --- SUB-VIEW ---
+struct ClientVehicleCard: View {
+    let vehicle: Vehicle
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(Color.blue.opacity(0.1))
+                    .frame(width: 50, height: 50)
+                Image(systemName: "car.fill")
+                    .font(.title3)
+                    .foregroundStyle(Color.blue)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text("\(vehicle.year) \(vehicle.make) \(vehicle.model)")
+                    .font(.headline)
+                    .primaryText()
+                Text(vehicle.plateNumber.isEmpty ? "No Plate Info" : vehicle.plateNumber)
+                    .font(.caption)
+                    .secondaryText()
+            }
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .secondaryText()
+        }
+        .padding()
+        .luxuryCardStyle()
     }
 }

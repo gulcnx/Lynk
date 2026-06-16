@@ -10,15 +10,24 @@ import SwiftData
 
 @main
 struct LynkApp: App {
-    // It remembers if they have finished onboarding, even if they close the app.
     @AppStorage("hasSeenOnboarding") var hasSeenOnboarding: Bool = false
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
+    @StateObject private var store = StoreManager()
+    
+    init() {
+        NotificationManager.shared.requestPermission()
+    }
     
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Client.self,
-            Project.self,
+            Vehicle.self,
+            Service.self,
+            Expense.self,
+            DamagePoint.self,
+            Appointment.self
         ])
+
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
@@ -30,11 +39,13 @@ struct LynkApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Group{
+            Group {
                 if hasSeenOnboarding {
                     MainTabView()
+                        .environmentObject(store)
                 } else {
                     OnboardingView(isOnboardingComplete: $hasSeenOnboarding)
+                        .environmentObject(store)
                 }
             }
             .preferredColorScheme(isDarkMode ? .dark : .light)

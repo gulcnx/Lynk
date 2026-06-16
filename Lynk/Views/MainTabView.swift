@@ -21,11 +21,21 @@ struct MainTabView: View {
                     Label("Clients", systemImage: "person.2.fill")
                 }
             
+            CalendarView()
+                .tabItem{
+                    Label("Calendar", systemImage: "calendar")
+                }
+            
+            ExpensesView()
+                .tabItem {
+                    Label("Expenses", systemImage: "creditcard.fill")
+                }
+            
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gear")
                 }
         }
-        .tint(.lynkYellow) 
+        .tint(.lynkMint) 
     }
 }

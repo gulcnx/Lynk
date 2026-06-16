@@ -10,36 +10,32 @@ import PDFKit
 
 @MainActor
 struct InvoiceGenerator {
-    static func generateInvoice(for project: Project) -> URL? {
+
+    static func generateInvoice(for service: Service) -> URL? {
         // 1. Create the standard A4 size
         let pageWidth = 595.2
         let pageHeight = 841.8
         
-        // 2. Create the Renderer with specific size constraints
-        let renderer = ImageRenderer(content: InvoiceView(project: project))
+        // 2. Create the Renderer
+        let renderer = ImageRenderer(content: InvoiceView(service: service))
         renderer.proposedSize = ProposedViewSize(width: pageWidth, height: pageHeight)
         
-        // 3. Define where to save the file
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("Invoice_\(project.title).pdf")
+        // 3. Define file path
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("Invoice_\(service.title).pdf")
         
-        // 4. Create a PDF Context destination
+        // 4. Create PDF Context
         guard let consumer = CGDataConsumer(url: tempURL as CFURL),
               let pdfContext = CGContext(consumer: consumer, mediaBox: nil, nil)
         else {
-            print("Could not create PDF context")
             return nil
         }
         
-        // 5. Begin the PDF Page
         pdfContext.beginPDFPage(nil)
         
-        // 6. The Magic: Tell ImageRenderer to draw into our PDF Context
         renderer.render { size, renderInContext in
-            // Move the context to the right position if needed (usually 0,0 is fine)
             renderInContext(pdfContext)
         }
         
-        // 7. Close and Save
         pdfContext.endPDFPage()
         pdfContext.closePDF()
         
@@ -49,68 +45,132 @@ struct InvoiceGenerator {
 
 // Visual Design of the PDF
 struct InvoiceView: View {
-    let project: Project
+    let service: Service
+    
+    // 👇 Tap into the data we saved in SettingsView!
+    @AppStorage("userLogoData") private var userLogoData: Data = Data()
+    @AppStorage("userName") private var userName: String = "User"
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            // Header
-            Text("INVOICE")
-                .font(.system(size: 48, weight: .bold))
-                .foregroundStyle(.blue)
+            // --- HEADER ---
+            HStack {
+                Text("INVOICE")
+                    .font(.system(size: 48, weight: .bold))
+                    .foregroundStyle(.black)
+                Spacer()
+                
+                // 👇 Dynamic Logo Logic
+                if !userLogoData.isEmpty, let uiImage = UIImage(data: userLogoData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: 150, maxHeight: 60) // Keeps logo a reasonable size
+                } else {
+                    Image(systemName: "car.fill")
+                        .font(.largeTitle)
+                        .foregroundStyle(.gray)
+                }
+            }
             
             Divider()
             
-            // Client Details
-            VStack(alignment: .leading) {
-                Text("Billed To:")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-                Text(project.client?.name ?? "Unknown Client")
-                    .font(.title2)
-                    .bold()
-                Text(project.client?.email ?? "")
+            // --- TWO COLUMNS: CLIENT & VEHICLE ---
+            HStack(alignment: .top, spacing: 50) {
+                // Col 1: Client
+                VStack(alignment: .leading) {
+                    Text("Billed To:")
+                        .font(.headline)
+                        .foregroundStyle(.gray)
+                    Text(service.vehicle?.client?.name ?? "Valued Client")
+                        .font(.title3)
+                        .bold()
+                    Text(service.vehicle?.client?.email ?? "")
+                    Text(service.vehicle?.client?.phoneNumber ?? "")
+                }
+                
+                Spacer()
+                
+                // Col 2: Vehicle
+                VStack(alignment: .trailing) {
+                    Text("Vehicle Serviced:")
+                        .font(.headline)
+                        .foregroundStyle(.gray)
+                    
+                    if let vehicle = service.vehicle {
+                        Text("\(String(vehicle.year)) \(vehicle.make) \(vehicle.model)")
+                            .font(.title3)
+                            .bold()
+                        Text("Color: \(vehicle.color)")
+                        if let vin = vehicle.vin, !vin.isEmpty {
+                            Text("VIN: \(vin)")
+                                .font(.caption)
+                                .monospaced()
+                        }
+                    } else {
+                        Text("Unknown Vehicle")
+                    }
+                }
             }
             .padding(.vertical)
             
-            // Project Details Table
+            // --- SERVICE TABLE ---
             VStack(spacing: 0) {
+                // Table Header
                 HStack {
-                    Text("Description").bold()
+                    Text("Service Description").bold()
                     Spacer()
-                    Text("Hours").bold()
+                    Text("Date").bold()
                     Spacer()
-                    Text("Rate").bold()
-                    Spacer()
-                    Text("Total").bold()
+                    Text("Amount").bold()
                 }
                 .padding()
-                .background(Color.gray.opacity(0.2))
+                .background(Color.gray.opacity(0.1))
                 
+                // Table Row
                 HStack {
-                    Text(project.title)
+                    Text(service.title)
                     Spacer()
-                    Text(String(format: "%.1f", project.hoursWorked))
+                    Text(service.date.formatted(date: .numeric, time: .omitted))
                     Spacer()
-                    Text("$\(String(format: "%.2f", project.hourlyRate))")
-                    Spacer()
-                    Text("$\(String(format: "%.2f", project.totalFee))")
+                    Text(service.price, format: .currency(code: "USD"))
                 }
                 .padding()
                 
                 Divider()
             }
             
+            // --- TOTAL ---
+            HStack {
+                Spacer()
+                VStack(alignment: .trailing) {
+                    Text("Total Due")
+                        .font(.headline)
+                    Text(service.price, format: .currency(code: "USD"))
+                        .font(.largeTitle)
+                        .bold()
+                        .foregroundStyle(.green)
+                }
+            }
+            .padding(.top, 20)
+            
             Spacer()
             
-            // Footer
-            Text("Thank you for your business!")
-                .font(.caption)
-                .italic()
-                .frame(maxWidth: .infinity, alignment: .center)
+            // --- FOOTER ---
+            VStack(spacing: 5) {
+                Text("Thank you for your business!")
+                    .font(.headline)
+                // 👇 Automatically uses the name they typed in settings!
+                Text("Please make checks payable to \(userName)")
+                    .font(.caption)
+                    .foregroundStyle(.gray)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.bottom, 50)
         }
-        .padding(50) // Margins
-        .background(.white) // Vital: PDF needs a background color
-        // 👇 CRITICAL FIX: Force the view to be A4 size
-        .frame(width: 595.2, height: 841.8)
+        .padding(50)
+        .background(.white)
+        .foregroundStyle(.black) // Force text black for printing
+        .frame(width: 595.2, height: 841.8) // A4 Size
     }
 }
