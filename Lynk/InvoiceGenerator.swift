@@ -46,10 +46,9 @@ struct InvoiceGenerator {
 // Visual Design of the PDF
 struct InvoiceView: View {
     let service: Service
-    
-    // 👇 Tap into the data we saved in SettingsView!
     @AppStorage("userLogoData") private var userLogoData: Data = Data()
     @AppStorage("userName") private var userName: String = "User"
+    @AppStorage("currencyCode") private var currencyCode: String = "USD"
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -60,7 +59,6 @@ struct InvoiceView: View {
                     .foregroundStyle(.black)
                 Spacer()
                 
-                // 👇 Dynamic Logo Logic
                 if !userLogoData.isEmpty, let uiImage = UIImage(data: userLogoData) {
                     Image(uiImage: uiImage)
                         .resizable()
@@ -133,7 +131,7 @@ struct InvoiceView: View {
                     Spacer()
                     Text(service.date.formatted(date: .numeric, time: .omitted))
                     Spacer()
-                    Text(service.price, format: .currency(code: "USD"))
+                    Text(service.price, format: .currency(code: currencyCode))
                 }
                 .padding()
                 
@@ -146,7 +144,7 @@ struct InvoiceView: View {
                 VStack(alignment: .trailing) {
                     Text("Total Due")
                         .font(.headline)
-                    Text(service.price, format: .currency(code: "USD"))
+                    Text(service.price, format: .currency(code: currencyCode))
                         .font(.largeTitle)
                         .bold()
                         .foregroundStyle(.green)

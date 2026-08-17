@@ -14,6 +14,7 @@ struct VehicleDetailView: View {
     @Environment(\.modelContext) var modelContext
     @State private var showAddServiceSheet = false
     @State private var showEditVehicleSheet = false
+    @AppStorage("currencyCode") private var currencyCode: String = "USD"
     
     func getVehicleColor(_ colorString: String) -> Color {
         switch colorString.lowercased() {
@@ -77,7 +78,7 @@ struct VehicleDetailView: View {
             Section(header: HStack {
                 Text("Service History")
                 Spacer()
-                Text("Total: \(vehicle.totalRevenue, format: .currency(code: "USD"))")
+                Text("Total: \(vehicle.totalRevenue, format: .currency(code: currencyCode))")
                     .font(.caption)
                     .foregroundStyle(Color.lynkMint)
             }) {
@@ -126,6 +127,7 @@ struct ServiceRowView: View {
     @State private var navigateToPhotos = false
     @State private var showPaywallAlert = false
     @State private var showPaywall = false
+    @AppStorage("currencyCode") private var currencyCode: String = "USD"
     
     @Environment(\.requestReview) var requestReview
     @AppStorage("servicesMarkedPaidCount") private var servicesMarkedPaidCount = 0
@@ -287,7 +289,7 @@ struct ServiceRowView: View {
                 }
             }
                 Spacer()
-                Text(service.price, format: .currency(code: "USD"))
+                Text(service.price, format: .currency(code: currencyCode))
                     .bold()
             }
         }

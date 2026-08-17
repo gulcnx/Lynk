@@ -14,6 +14,8 @@ struct ClientDetailView: View {
     @State private var showAddVehicleSheet = false
     @State private var showEditSheet = false
     
+    @AppStorage("currencyCode") private var currencyCode: String = "USD"
+    
     init(client: Client) {
         _viewModel = State(initialValue: ClientDetailViewModel(client: client))
     }
@@ -30,7 +32,7 @@ struct ClientDetailView: View {
                         .secondaryText()
                         .tracking(1)
                     
-                    Text(viewModel.formattedEarnings)
+                    Text(viewModel.totalEarnings, format: .currency(code: currencyCode))
                         .font(.system(size: 36, weight: .bold, design: .rounded))
                         .primaryText()
                 }

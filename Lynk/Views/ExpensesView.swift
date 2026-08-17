@@ -13,6 +13,7 @@ struct ExpensesView: View {
     @Environment(\.modelContext) private var modelContext
     
     @State private var showAddSheet = false
+    @AppStorage("currencyCode") private var currencyCode: String = "USD"
     
     var totalExpenses: Double {
         expenses.reduce(0) { $0 + $1.amount }
@@ -95,19 +96,20 @@ struct ExpensesView: View {
 
 struct ExpenseRow: View {
     let expense: Expense
+    @AppStorage("currencyCode") private var currencyCode: String = "USD"
     
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(expense.title)
                     .font(.headline)
-                    .primaryText() // 👈 Fixed White Text Bug
+                    .primaryText()
                 Text(expense.date.formatted(date: .abbreviated, time: .omitted))
                     .font(.caption)
                     .secondaryText()
             }
             Spacer()
-            Text(expense.amount, format: .currency(code: "USD"))
+            Text(expense.amount, format: .currency(code: currencyCode))
                 .font(.subheadline)
                 .bold()
                 .foregroundStyle(Color.lynkRed)
@@ -125,18 +127,17 @@ struct AddExpenseSheet: View {
     
     @State private var title = ""
     @State private var amount = ""
+    @AppStorage("currencyCode") private var currencyCode: String = "USD"
     
     var body: some View {
         NavigationStack {
             Form {
                 Section(header: Text("Details")) {
                     TextField("Expense Name", text: $title)
-                    TextField("Amount ($)", text: $amount)
+                    TextField("Amount", text: $amount)
                         .keyboardType(.decimalPad)
                 }
-                // 👈 DELETED hardcoded dark background code here
             }
-            // 👈 DELETED hardcoded dark background code here
             .navigationTitle("New Expense")
             .toolbar {
                 Button("Save") {

@@ -15,6 +15,9 @@ struct SettingsView: View {
     
     @AppStorage("userLogoData") private var userLogoData: Data = Data()
     
+    @AppStorage("currencyCode") private var currencyCode: String = "USD"
+        let currencies = ["USD", "EUR", "TRY", "GBP", "CAD", "AUD", "JPY"]
+    
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var store: StoreManager
     
@@ -101,21 +104,29 @@ struct SettingsView: View {
                     }
                     .listRowBackground(colorScheme == .dark ? Color.lynkCardDark : Color.lynkCardLight)
                     
-                    // --- SECTION 2: GOALS ---
-                    Section(header: Text("Business Goals")) {
+                    // --- SECTION 2: GOALS & PREFERENCES ---
+                    Section(header: Text("Preferences")) {
+                        Picker(selection: $currencyCode, label: HStack {
+                            Image(systemName: "banknote.fill").foregroundStyle(Color.lynkMint)
+                            Text("Currency")
+                        }) {
+                            ForEach(currencies, id: \.self) { code in
+                                Text(code).tag(code)
+                            }
+                        }
+                        
                         HStack {
-                            Image(systemName: "target")
-                                .foregroundStyle(Color.lynkMint)
+                            Image(systemName: "target").foregroundStyle(Color.lynkMint)
                             Text("Monthly Goal")
                             Spacer()
-                            TextField("Amount", value: $monthlyGoal, format: .currency(code: "USD"))
+                            TextField("Amount", value: $monthlyGoal, format: .currency(code: currencyCode))
                                 .keyboardType(.decimalPad)
                                 .multilineTextAlignment(.trailing)
                                 .frame(width: 100)
                         }
                     }
                     .listRowBackground(colorScheme == .dark ? Color.lynkCardDark : Color.lynkCardLight)
-
+                    
                     // --- SECTION 3: APPEARANCE ---
                     Section(header: Text("Appearance")) {
                         Toggle(isOn: $isDarkMode) {

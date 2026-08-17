@@ -18,6 +18,7 @@ struct DashboardView: View {
     
     @AppStorage("monthlyGoal") private var monthlyGoal: Double = 5000.0
     @AppStorage("userName") private var userName: String = "User"
+    @AppStorage("currencyCode") private var currencyCode: String = "USD"
     
     @State private var showPaywall = false
     
@@ -42,11 +43,11 @@ struct DashboardView: View {
             let hour = Calendar.current.component(.hour, from: Date())
             switch hour {
             case 0..<12:
-                return "Good Morning,"
+                return String(localized: "Good Morning,")
             case 12..<17:
-                return "Good Afternoon,"
+                return String(localized: "Good Afternoon,")
             default:
-                return "Good Evening,"
+                return String(localized: "Good Evening,")
             }
         }
     
@@ -78,7 +79,8 @@ struct DashboardView: View {
                                 .font(.caption2)
                                 .fontWeight(.bold)
                                 .secondaryText()
-                            Text(netProfit, format: .currency(code: "USD"))
+                            
+                            Text(netProfit, format: .currency(code: currencyCode))
                                 .font(.headline)
                                 .foregroundStyle(netProfit >= 0 ? Color.lynkMint : Color.lynkRed)
                         }
@@ -229,36 +231,22 @@ struct DashboardView: View {
 // Isolated Row UI for Recent Services
 struct RecentActivityRow: View {
     let service: Service
+    @AppStorage("currencyCode") private var currencyCode: String = "USD"
     
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(service.title)
-                    .font(.headline)
-                    .primaryText()
-                Text(service.vehicle?.make ?? "Unknown Vehicle")
-                    .font(.caption)
-                    .secondaryText()
+                Text(service.title).font(.headline).primaryText()
+                Text(service.vehicle?.make ?? "Unknown Vehicle").font(.caption).secondaryText()
             }
             Spacer()
-            
-            Text(service.price, format: .currency(code: "USD"))
-                .font(.subheadline)
-                .fontWeight(.bold)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(
-                    service.isPaid
-                    ? Color.lynkMint.opacity(0.2)
-                    : Color.orange.opacity(0.2)
-                )
-                .foregroundStyle(
-                    service.isPaid ? Color.lynkMint : Color.orange
-                )
+            Text(service.price, format: .currency(code: currencyCode))
+                .font(.subheadline).fontWeight(.bold).padding(.horizontal, 10).padding(.vertical, 6)
+                .background(service.isPaid ? Color.lynkMint.opacity(0.2) : Color.orange.opacity(0.2))
+                .foregroundStyle(service.isPaid ? Color.lynkMint : Color.orange)
                 .cornerRadius(8)
         }
-        .padding()
-        .luxuryCardStyle()
+        .padding().luxuryCardStyle()
     }
 }
 

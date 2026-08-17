@@ -11,6 +11,7 @@ import SwiftData
 struct AddServiceView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("currencyCode") private var currencyCode: String = "USD"
     
     var vehicle: Vehicle
     
@@ -63,7 +64,10 @@ struct AddServiceView: View {
                     TextField("Service Name", text: $title)
                     
                     HStack {
-                        Text("$")
+                        Text(currencyCode)
+                            .font(.caption)
+                            .foregroundStyle(.gray)
+                        
                         TextField("Price", text: $priceString)
                             .keyboardType(.decimalPad)
                     }
