@@ -11,6 +11,7 @@ struct OnboardingView: View {
     @Binding var isOnboardingComplete: Bool
     @State private var currentPage = 0
     @AppStorage("userName") var userName: String = "User"
+    @AppStorage("currencyCode") private var currencyCode: String = "USD"
     
     var body: some View {
         TabView(selection: $currentPage) {
@@ -38,7 +39,53 @@ struct OnboardingView: View {
             )
             .tag(2)
             
-            // Page 4: Name Input
+            // Page 4: Currency Selection
+            VStack(spacing: 20) {
+                Image(systemName: "banknote.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 100)
+                    .foregroundStyle(Color.lynkMint)
+                
+                Text("Select Your Currency")
+                    .font(.title)
+                    .bold()
+                    .primaryText()
+                
+                Text("Choose the currency you use for your detailing business.")
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 30)
+                
+                Picker("Currency", selection: $currencyCode) {
+                    ForEach(["USD", "EUR", "TRY", "GBP", "CAD", "AUD", "JPY"], id: \.self) { code in
+                        Text(code).tag(code)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, 40)
+                
+                Button(action: {
+                    withAnimation {
+                        currentPage += 1
+                    }
+                }) {
+                    Text("Continue")
+                        .font(.headline)
+                        .bold()
+                        .foregroundStyle(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.lynkMint)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+                .padding(.horizontal, 40)
+                .padding(.top, 20)
+            }
+            .tag(3)
+            
+            // Page 5: Name Input
             VStack(spacing: 20) {
                 Image(systemName: "person.crop.circle.badge.plus")
                     .resizable()
@@ -50,7 +97,6 @@ struct OnboardingView: View {
                     .font(.title)
                     .bold()
                 
-                // 👇 UPDATED: HStack with TextField and Next Arrow Button
                 HStack(spacing: 12) {
                     TextField("Your First Name", text: $userName)
                         .font(.headline)
@@ -81,7 +127,7 @@ struct OnboardingView: View {
                     .font(.caption)
                     .foregroundStyle(.gray)
             }
-            .tag(3)
+            .tag(4)
             
             // Page 5: Get Started
             VStack {
